@@ -1,0 +1,4 @@
+add_executable(hydrogenWeb hydrogenWeb.cpp)
+target_compile_features(hydrogenWeb PRIVATE cxx_std_17)
+
+target_link_libraries(hydrogenWeb PRIVATE robustio)
