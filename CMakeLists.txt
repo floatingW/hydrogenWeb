@@ -10,6 +10,15 @@ project(hydrogenWeb
 # Imports cmake modules
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
+# Sets compile flags
+set(CXX_FLAGS
+        -Wall
+        -Wextra
+        -Werror
+        -pedantic
+        -pedantic-errors
+        )
+
 # for main project
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 

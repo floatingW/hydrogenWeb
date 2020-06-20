@@ -18,10 +18,6 @@ const int RIO_BUFSIZE = 8192;
 class Riob
 {
 public:
-    /*
-     * buffered Rio
-     */
-
     // explicit to avoid implicit conversion
     explicit Riob(int fd);
 

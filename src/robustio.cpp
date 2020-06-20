@@ -12,7 +12,7 @@
  * - Buffered input of text lines and binary data: readlineb, readnb
  */
 
-#include "robustio/robustio.hpp"
+#include "io/robustio.hpp"
 
 /*
  * Rio buffered version
