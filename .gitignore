@@ -1,3 +1,8 @@
-build*
+# IDEs' configurations
 .idea/
-tests/test_cases/output/
+.vscode/
+
+# directories of temporal output files
+output/
+# build files
+build/

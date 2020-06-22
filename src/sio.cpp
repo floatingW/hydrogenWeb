@@ -29,6 +29,15 @@ namespace sio
         return n;
     }
 
+    /*
+     * wrapper for Prints(char* s)
+     */
+    ssize_t Prints(const std::string& msg)
+    {
+        const char* msgCstyle = msg.c_str();
+        return Prints(msgCstyle);
+    }
+
     ssize_t Prints(const char* s)
     {
         ssize_t n = prints(s);
@@ -43,6 +52,7 @@ namespace sio
     {
         error(s);
     }
+
 
     static ssize_t prints(const char* s)
     {

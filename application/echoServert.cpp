@@ -1,13 +1,16 @@
 /*
- * File: echoServer.cpp
- * --------------------
+ * File: echoServert.cpp
+ * ---------------------
  * @author: Fu Wei
- * simple iterative echo server demo
+ * simple multi-thread echo server demo.
+ * Just for linux, so Posix thread is Ok.
  */
 
+#include <pthread.h>
 #include "system/unixUtility.hpp"
 #include "network/socket.hpp"
 #include "io/robustio.hpp"
+#include "io/sio.hpp"
 #include <iostream>
 
 #pragma clang diagnostic push
@@ -29,6 +32,18 @@ void echo(int connfd)
     }
 }
 
+void *echoThread(void *argp) {
+    int connfd = *(int *)argp;
+    Pthread_detach(Pthread_self());
+    delete (int*)argp; // we need to free the memory of connfd pointer
+
+    echo(connfd);
+    Close(connfd);
+
+    cout << "thread " << Pthread_self() << " finished\n";
+    return nullptr;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -43,15 +58,16 @@ int main(int argc, char* argv[])
     struct sockaddr clientaddr;
 
     int listenfd = OpenListenFd(port);
-    while (true)
-    {
+
+    while (true) {
         socklen_t clientlen = sizeof(struct sockaddr);
-        int connfd = Accept(listenfd, &clientaddr, &clientlen);
-        GetNameInfo(&clientaddr, clientlen, client_hostname, MAXLINE, client_port, MAXLINE, 0);
-        cout << "Connected to (" << client_hostname << ": " << client_port << ")\n";
-        echo(connfd);
-        Close(connfd);
+        int *connfdp = new int;
+        *connfdp = Accept(listenfd, &clientaddr, &clientlen);
+        pthread_t pid;
+        Pthread_create(&pid, nullptr, echoThread, connfdp);
     }
+
+    return 0;
 }
 
 #pragma clang diagnostic pop

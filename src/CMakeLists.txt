@@ -13,6 +13,7 @@ target_include_directories(unixUtility PUBLIC ../include)
 
 # link dependence
 target_link_libraries(network PRIVATE unixUtility)
+target_link_libraries(unixUtility PRIVATE Threads::Threads)
 
 # Just c++17
 target_compile_features(io PUBLIC cxx_std_17)

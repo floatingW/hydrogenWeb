@@ -37,6 +37,9 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
         message(STATUS "GTest not found, not building tests")
     endif ()
 
+    # find pthread
+    find_package(Threads REQUIRED)
+
 endif ()
 
 # Need fetchcontent for some extra modules
