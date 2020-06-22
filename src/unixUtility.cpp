@@ -31,12 +31,24 @@ void app_error(const string& msg)
     cerr << msg << endl;
 }
 
+/*
+ * wrappers for Unix I/O routines
+ */
 int Close(int fd)
 {
     int ret = close(fd);
     if (ret < 0)
     {
         unix_error("Close error");
+    }
+    return ret;
+}
+
+int Select(int n, fd_set* readfds, fd_set* writefds, fd_set* errorfds, struct timeval* timeout)
+{
+    int ret = select(n, readfds, writefds, errorfds, timeout);
+    if (ret < 0) {
+        unix_error("Select error");
     }
     return ret;
 }

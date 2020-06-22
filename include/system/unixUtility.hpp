@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <csignal>
 #include <pthread.h>
+#include <sys/select.h>
 
 /*
  * error handling
@@ -23,6 +24,8 @@ void app_error(const std::string& msg);
  * wrappers for Unix I/O routines
  */
 int Close(int fd);
+int Select(int n, fd_set *readfds, fd_set *writefds, fd_set *errorfds,
+           struct timeval *timeout);
 
 /*
  * wrappers for Unix process control functions

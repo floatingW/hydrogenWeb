@@ -27,3 +27,9 @@ add_executable(echoServert echoServert.cpp)
 target_compile_features(echoServert PRIVATE cxx_std_17)
 
 target_link_libraries(echoServert PRIVATE io network)
+
+# echoServer (I/O multiplexing)
+add_executable(echoServerm echoServerm.cpp)
+target_compile_features(echoServerm PRIVATE cxx_std_17)
+
+target_link_libraries(echoServerm PRIVATE io network)
