@@ -47,7 +47,8 @@ int Close(int fd)
 int Select(int n, fd_set* readfds, fd_set* writefds, fd_set* errorfds, struct timeval* timeout)
 {
     int ret = select(n, readfds, writefds, errorfds, timeout);
-    if (ret < 0) {
+    if (ret < 0)
+    {
         unix_error("Select error");
     }
     return ret;
