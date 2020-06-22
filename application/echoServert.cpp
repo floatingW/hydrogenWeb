@@ -66,8 +66,6 @@ int main(int argc, char* argv[])
         pthread_t pid;
         Pthread_create(&pid, nullptr, echoThread, connfdp);
     }
-
-    return 0;
 }
 
 #pragma clang diagnostic pop
