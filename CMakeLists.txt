@@ -40,6 +40,9 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # find pthread
     find_package(Threads REQUIRED)
 
+    # find spdlog
+    find_package(spdlog REQUIRED)
+
 endif ()
 
 # Need fetchcontent for some extra modules
