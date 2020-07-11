@@ -40,6 +40,12 @@ public:
         _loop->assertInLoopThread();
     }
 
+    /*
+     * make it non-copyable
+     */
+    Poller(const Poller&) = delete;
+    Poller& operator=(const Poller&) = delete;
+
 private:
     void fillActiveChannels(int numEvents, ChannelList* activeChannels) const;
 

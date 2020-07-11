@@ -55,6 +55,12 @@ public:
 
     EventLoop* ownerLoop() { return _loop; }
 
+    /*
+     * make it non-copyable
+     */
+    Channel(const Channel&) = delete;
+    Channel& operator=(const Channel&) = delete;
+
 private:
     void update();
 
