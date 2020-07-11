@@ -33,3 +33,10 @@ add_executable(echoServerm echoServerm.cpp)
 target_compile_features(echoServerm PRIVATE cxx_std_17)
 
 target_link_libraries(echoServerm PRIVATE io network)
+
+# EventLoopTest App
+add_executable(event EventLoopTest.cpp)
+target_compile_features(event PRIVATE cxx_std_17)
+
+target_link_libraries(event PRIVATE network core)
+
