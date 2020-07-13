@@ -2,33 +2,37 @@
 // Created by fwei on 6/20/20.
 //
 #include "system/unixUtility.hpp"
-#include <unistd.h>
-#include <iostream>
+
 #include <cstring>
-#include <netdb.h>
 #include <cerrno>
+
+#include <unistd.h>
+#include <netdb.h>
 #include <sys/wait.h>
+#include <sys/timerfd.h>
+
+#include "spdlog/spdlog.h"
 
 using namespace std;
 
 void unix_error(const string& msg)
 {
-    cerr << msg << ": " << strerror(errno) << endl;
+    spdlog::error("{}: {}", msg, strerror(errno));
 }
 
 void posix_error(int code, const string& msg)
 {
-    cerr << msg << ": " << strerror(code) << endl;
+    spdlog::error("{}: {}", msg, strerror(code));
 }
 
 void gai_error(int code, const string& msg)
 {
-    cerr << msg << ": " << gai_strerror(code) << endl;
+    spdlog::error("{}: {}", msg, gai_strerror(code));
 }
 
 void app_error(const string& msg)
 {
-    cerr << msg << endl;
+    spdlog::error(msg);
 }
 
 /*
@@ -153,4 +157,14 @@ int Pthread_detach(pthread_t pid)
 pthread_t Pthread_self()
 {
     return pthread_self();
+}
+
+int Timerfd_create()
+{
+    int ret = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+    if (ret < 0)
+    {
+        unix_error("Timerfd_create error");
+    }
+    return ret;
 }

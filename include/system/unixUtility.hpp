@@ -48,4 +48,9 @@ typedef void*(func)(void*); // thread routine, a function without return value a
 int Pthread_create(pthread_t* tid, const pthread_attr_t* attr, func* f, void* arg);
 int Pthread_detach(pthread_t pid);
 pthread_t Pthread_self();
+
+/*
+ * wrappers for functions in sys/timerfd.h
+ */
+int Timerfd_create();
 #endif //HYDROGENWEB_UNIXUTILITY_HPP
