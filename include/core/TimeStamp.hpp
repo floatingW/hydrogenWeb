@@ -1,6 +1,6 @@
 /*
  * File: TimeStamp.hpp
- * ---------------------------------
+ * -------------------
  * @author: Fu Wei
  *
  */
@@ -12,28 +12,40 @@
 
 class TimeStamp
 {
-    typedef std::chrono::system_clock::time_point Time;
+    typedef std::chrono::system_clock::time_point TimePoint;
 
 public:
-    explicit TimeStamp(Time t) :
-        _time(t)
+    explicit TimeStamp(TimePoint t) :
+        _timePoint(t)
     {
     }
 
-    auto toMilliseconds()
+    auto toMicroSec()
     {
         using namespace std::chrono;
-        return duration_cast<milliseconds>(_time.time_since_epoch()).count();
+        return duration_cast<microseconds>(_timePoint.time_since_epoch()).count();
     }
 
-    static Time now()
+    auto toMilliSec()
     {
         using namespace std::chrono;
-        return system_clock::now();
+        return duration_cast<milliseconds>(_timePoint.time_since_epoch()).count();
     }
+
+    static TimeStamp now()
+    {
+        using namespace std::chrono;
+        return TimeStamp(system_clock::now());
+    }
+
+    friend bool operator<(const TimeStamp& l, const TimeStamp& r);
+    friend bool operator==(const TimeStamp& l, const TimeStamp& r);
+    friend bool operator<=(const TimeStamp& l, const TimeStamp& r);
+
+    friend TimeStamp operator+(const TimeStamp& l, uint64_t milliSecDelay);
 
 private:
-    Time _time; // timestamp from 19700101000000;
+    TimePoint _timePoint;
 };
 
 #endif //HYDROGENWEB_TIMESTAMP_HPP
