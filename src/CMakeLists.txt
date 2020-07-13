@@ -16,8 +16,9 @@ target_include_directories(unixUtility PUBLIC ../include)
 target_include_directories(sem PUBLIC ../include)
 
 # link dependence
+target_link_libraries(core PRIVATE unixUtility spdlog::spdlog)
 target_link_libraries(network PRIVATE unixUtility spdlog::spdlog)
-target_link_libraries(unixUtility PRIVATE Threads::Threads)
+target_link_libraries(unixUtility PRIVATE Threads::Threads spdlog::spdlog)
 
 # Just c++17
 target_compile_features(core PUBLIC cxx_std_17)
