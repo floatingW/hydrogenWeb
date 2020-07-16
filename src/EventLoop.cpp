@@ -8,19 +8,23 @@
 #include "network/EventLoop.hpp"
 #include "network/Poller.hpp"
 #include "network/Channel.hpp"
+#include "core/TimerQueue.hpp"
 
-#include <cassert>
-
-#include <poll.h>
+#include <cassert> // for assert macro
 
 #include "spdlog/spdlog.h"
 
 const int POLLTIME = 10000; // millisecond
+const int milliSecsPerSecond = 1000;
 
 thread_local EventLoop* loopInThisThread = nullptr;
 
 EventLoop::EventLoop() :
-    _looping(false), _threadId(gettid()), _quit(false), _poller(new Poller(this))
+    _looping(false),
+    _threadId(gettid()),
+    _quit(false),
+    _poller(new Poller(this)),
+    _timerQueue(new TimerQueue(this))
 {
     spdlog::info("A new eventLoop {} created in thread {}", (void*)this, _threadId);
     if (loopInThisThread)
@@ -81,7 +85,7 @@ void EventLoop::abortNotInLoopThread()
 
 void EventLoop::updateChannel(Channel* channel)
 {
-    assert(channel->ownerLoop() == _loop);
+    assert(channel->ownerLoop() == this);
 
     assertInLoopThread();
     _poller->updateChannel(channel);
@@ -90,4 +94,15 @@ void EventLoop::updateChannel(Channel* channel)
 EventLoop* EventLoop::getCurrentEventLoop()
 {
     return loopInThisThread;
+}
+
+void EventLoop::runAt(TimeStamp time, const EventLoop::TimerCallBack& cb)
+{
+    _timerQueue->addTimer(cb, time, 0.0);
+}
+
+void EventLoop::runAfter(double delay, const EventLoop::TimerCallBack& cb)
+{
+    auto delayMilliSec = static_cast<uint64_t>(delay * milliSecsPerSecond);
+    runAt(TimeStamp::now() + delayMilliSec, cb);
 }

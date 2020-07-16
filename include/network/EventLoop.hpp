@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <memory> // unique_ptr
+#include <functional> // function
 
 #include <sys/types.h> // pid_t
 #include <unistd.h> // gettid()
@@ -17,9 +18,13 @@
 // forward declaration
 class Channel;
 class Poller;
+class TimerQueue;
+class TimeStamp;
 
 class EventLoop
 {
+    typedef std::function<void()> TimerCallBack;
+
 public:
     EventLoop();
     ~EventLoop();
@@ -27,6 +32,12 @@ public:
     void loop();
 
     void quit();
+
+    /*
+     * set timer
+     */
+    void runAt(TimeStamp time, const TimerCallBack& cb);
+    void runAfter(double delay, const TimerCallBack& cb);
 
     /*
      * add or reset a channel
@@ -69,6 +80,7 @@ private:
     bool _quit;
     const pid_t _threadId;
     std::unique_ptr<Poller> _poller;
+    std::unique_ptr<TimerQueue> _timerQueue;
     ChannelList _activeChannels;
 };
 
