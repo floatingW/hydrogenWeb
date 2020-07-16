@@ -21,23 +21,6 @@ public:
     {
     }
 
-    /*
-     * TimeStamp is copyable class
-     */
-    TimeStamp(const TimeStamp& s) = default;
-
-    void swap(TimeStamp& lhs, TimeStamp& rhs)
-    {
-        using std::swap;
-        swap(lhs._timePoint, lhs._timePoint);
-    }
-
-    TimeStamp& operator=(TimeStamp rhs)
-    {
-        swap(*this, rhs);
-        return *this;
-    }
-
     auto toMicroSec()
     {
         using namespace std::chrono;
