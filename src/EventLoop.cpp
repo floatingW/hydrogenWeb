@@ -15,7 +15,6 @@
 #include "spdlog/spdlog.h"
 
 const int POLLTIME = 10000; // millisecond
-const int milliSecsPerSecond = 1000;
 
 thread_local EventLoop* loopInThisThread = nullptr;
 
@@ -103,6 +102,10 @@ void EventLoop::runAt(TimeStamp time, const EventLoop::TimerCallBack& cb)
 
 void EventLoop::runAfter(double delay, const EventLoop::TimerCallBack& cb)
 {
-    auto delayMilliSec = static_cast<int64_t>(delay * milliSecsPerSecond);
-    runAt(TimeStamp::now() + delayMilliSec, cb);
+    runAt(TimeStamp::now() + delay, cb);
+}
+
+void EventLoop::runEvery(double interval, const TimerCallBack& cb)
+{
+    _timerQueue->addTimer(cb, TimeStamp::now() + interval, interval);
 }

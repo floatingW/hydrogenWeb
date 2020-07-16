@@ -38,6 +38,7 @@ public:
      */
     void runAt(TimeStamp time, const TimerCallBack& cb);
     void runAfter(double delay, const TimerCallBack& cb);
+    void runEvery(double interval, const TimerCallBack& cb);
 
     /*
      * add or reset a channel
