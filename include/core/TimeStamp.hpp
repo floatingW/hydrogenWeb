@@ -51,7 +51,7 @@ public:
     friend bool operator==(const TimeStamp& l, const TimeStamp& r);
     friend bool operator<=(const TimeStamp& l, const TimeStamp& r);
 
-    friend TimeStamp operator+(const TimeStamp& l, int64_t milliSecDelay);
+    friend TimeStamp operator+(const TimeStamp& l, double sec);
 
     static const int microSecsPerSecond = 1000000;
 

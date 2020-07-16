@@ -35,10 +35,11 @@ bool operator==(const TimeStamp& l, const TimeStamp& r)
     return lus == rus;
 }
 
-TimeStamp operator+(const TimeStamp& l, int64_t milliSecDelay)
+TimeStamp operator+(const TimeStamp& l, double sec)
 {
     using namespace std::chrono;
-    return TimeStamp(l._timePoint + milliseconds(milliSecDelay));
+    auto microSecs = static_cast<int64_t>(sec * TimeStamp::microSecsPerSecond);
+    return TimeStamp(l._timePoint + microseconds(microSecs));
 }
 
 std::string TimeStamp::toString()
