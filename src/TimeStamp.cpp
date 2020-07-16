@@ -35,7 +35,7 @@ bool operator==(const TimeStamp& l, const TimeStamp& r)
     return lus == rus;
 }
 
-TimeStamp operator+(const TimeStamp& l, uint64_t milliSecDelay)
+TimeStamp operator+(const TimeStamp& l, int64_t milliSecDelay)
 {
     using namespace std::chrono;
     return TimeStamp(l._timePoint + milliseconds(milliSecDelay));

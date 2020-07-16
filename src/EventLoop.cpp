@@ -103,6 +103,6 @@ void EventLoop::runAt(TimeStamp time, const EventLoop::TimerCallBack& cb)
 
 void EventLoop::runAfter(double delay, const EventLoop::TimerCallBack& cb)
 {
-    auto delayMilliSec = static_cast<uint64_t>(delay * milliSecsPerSecond);
+    auto delayMilliSec = static_cast<int64_t>(delay * milliSecsPerSecond);
     runAt(TimeStamp::now() + delayMilliSec, cb);
 }
