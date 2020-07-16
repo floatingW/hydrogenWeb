@@ -37,7 +37,7 @@ private:
     void timerHandler();
 
     std::vector<TimerEntry> getExpiration(TimeStamp now);
-    void reset(const std::vector<TimerEntry>& expired, TimeStamp now);
+    void reset(std::vector<TimerEntry> expired, TimeStamp now);
     bool insert(Timer* pTimer);
 
     int resetTimerfd(TimeStamp expiration) const;

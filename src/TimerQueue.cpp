@@ -61,7 +61,7 @@ void TimerQueue::timerHandler()
         i.second->run();
     }
 
-    reset(expiration, now);
+    reset(std::move(expiration), now);
 }
 
 std::vector<TimerQueue::TimerEntry> TimerQueue::getExpiration(TimeStamp now)
@@ -78,11 +78,20 @@ std::vector<TimerQueue::TimerEntry> TimerQueue::getExpiration(TimeStamp now)
 
 /*
  * TimerQueue::reset - each time while finishing expired events, must reset timerfd with the
- * earliest Timer in the remaining Timers
+ * earliest Timer in the remaining Timers and re-insert the repeat timers to TimerQueue
  */
-void TimerQueue::reset(const std::vector<TimerEntry>& expired, TimeStamp now)
+void TimerQueue::reset(std::vector<TimerEntry> expired, TimeStamp now)
 {
-    // TODO: for repeat timers
+    auto expiredSize = expired.size();
+    for (auto i = 0; i < expiredSize; i++)
+    {
+        auto& entry = expired[i];
+        if (entry.second->repeat())
+        {
+            entry.second->restart(now);
+            insert(entry.second.release());
+        }
+    }
 
     if (!_timers.empty())
     {
@@ -118,6 +127,9 @@ int TimerQueue::resetTimerfd(TimeStamp expiration) const
 
     // get duration from now, and set itimerspec
     int64_t microSecs = expiration.toMicroSec() - TimeStamp::now().toMicroSec();
+
+    assert(microSecs > 0);
+
     struct timespec ts;
     ts.tv_sec = static_cast<time_t>(microSecs / TimeStamp::microSecsPerSecond);
     ts.tv_nsec = static_cast<long>((microSecs % TimeStamp::microSecsPerSecond) * 1000);
