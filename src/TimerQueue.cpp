@@ -24,6 +24,7 @@ TimerQueue::TimerQueue(EventLoop* loop) :
 
 TimerQueue::~TimerQueue()
 {
+    ::close(_timerfd);
 }
 
 void TimerQueue::addTimer(const TimerQueue::TimerCallBack& cb, TimeStamp endTime, double interval)
