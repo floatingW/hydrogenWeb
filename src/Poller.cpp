@@ -7,6 +7,7 @@
 
 #include "network/Poller.hpp"
 #include "network/Channel.hpp"
+#include "system/unixUtility.hpp"
 
 #include "spdlog/spdlog.h"
 
@@ -26,17 +27,17 @@ TimeStamp Poller::poll(int timeoutMs, Poller::ChannelList* activeChannels)
 
     if (numEvents > 0)
     {
-        spdlog::info("{} events happened", numEvents);
+        spdlog::info("Poller::poll() {} events happened", numEvents);
         fillActiveChannels(numEvents, activeChannels);
     }
     else if (numEvents == 0)
     {
-        spdlog::info("nothing happened");
+        spdlog::info("Poller::poll() nothing happened");
     }
     else
     {
         // error happened
-        spdlog::error("Poller::poll() error");
+        unix_error("Poller::poll() error");
     }
 
     return now;
@@ -45,7 +46,7 @@ TimeStamp Poller::poll(int timeoutMs, Poller::ChannelList* activeChannels)
 void Poller::updateChannel(Channel* channel)
 {
     assertInLoopThread();
-    spdlog::info("fd {} with events {}", channel->fd(), channel->events());
+    spdlog::info("Channel of fd {} with events {}", channel->fd(), channel->events());
 
     if (channel->index() < 0) // a new fd
     {
