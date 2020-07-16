@@ -9,6 +9,7 @@
 #define HYDROGENWEB_TIMESTAMP_HPP
 
 #include <chrono>
+#include <string>
 
 class TimeStamp
 {
@@ -18,6 +19,23 @@ public:
     explicit TimeStamp(TimePoint t) :
         _timePoint(t)
     {
+    }
+
+    /*
+     * TimeStamp is copyable class
+     */
+    TimeStamp(const TimeStamp& s) = default;
+
+    void swap(TimeStamp& lhs, TimeStamp& rhs)
+    {
+        using std::swap;
+        swap(lhs._timePoint, lhs._timePoint);
+    }
+
+    TimeStamp& operator=(TimeStamp rhs)
+    {
+        swap(*this, rhs);
+        return *this;
     }
 
     auto toMicroSec()
@@ -32,6 +50,14 @@ public:
         return duration_cast<milliseconds>(_timePoint.time_since_epoch()).count();
     }
 
+    auto toSec()
+    {
+        using namespace std::chrono;
+        return duration_cast<seconds>(_timePoint.time_since_epoch()).count();
+    }
+
+    std::string toString();
+
     static TimeStamp now()
     {
         using namespace std::chrono;
@@ -43,6 +69,8 @@ public:
     friend bool operator<=(const TimeStamp& l, const TimeStamp& r);
 
     friend TimeStamp operator+(const TimeStamp& l, uint64_t milliSecDelay);
+
+    static const int microSecsPerSecond = 1000000;
 
 private:
     TimePoint _timePoint;
