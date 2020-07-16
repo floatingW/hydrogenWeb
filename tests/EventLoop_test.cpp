@@ -6,40 +6,105 @@
  */
 
 #include "network/EventLoop.hpp"
-#include "network/Channel.hpp"
+#include "core/TimeStamp.hpp"
 
 #include <thread>
 #include <iostream>
+#include <string>
 
 #include <sys/timerfd.h>
 #include <strings.h>
 
-EventLoop* g_loop;
+using namespace std;
 
-void timeout()
+EventLoop* g_loop;
+int cnt1 = 0;
+int cnt2 = 0;
+int cnt3 = 0;
+
+void print1(string s)
 {
-    std::cout << "timeout!\n";
-    g_loop->quit();
+    cout << "pid = " << getpid() << ", tid = " << gettid() << endl;
+    cout << TimeStamp::now().toString() << " " << s << endl;
+    if (cnt1++ >= 6)
+    {
+        g_loop->quit();
+    }
 }
 
-int main(int argc, char* argv[])
+void print2(string s)
+{
+    cout << "pid = " << getpid() << ", tid = " << gettid() << endl;
+    cout << TimeStamp::now().toString() << " " << s << endl;
+    if (cnt2++ >= 8)
+    {
+        g_loop->quit();
+    }
+}
+
+void print3(string s)
+{
+    cout << "pid = " << getpid() << ", tid = " << gettid() << endl;
+    cout << TimeStamp::now().toString() << " " << s << endl;
+}
+
+void loop1()
 {
     EventLoop loop;
     g_loop = &loop;
 
-    int timerfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
-    Channel channel(&loop, timerfd);
-    channel.setReadCallBack(timeout);
-    channel.enableReading();
-
-    struct itimerspec howlong;
-    ::bzero(&howlong, sizeof howlong);
-    howlong.it_value.tv_sec = 3;
-    ::timerfd_settime(timerfd, 0, &howlong, nullptr);
+    print1("in loop1: adding timers in reverse order with some duplicate timers");
+    loop.runAfter(4.0, std::bind(print1, "after 4.0"));
+    loop.runAfter(4.0, std::bind(print1, "after 4.0"));
+    loop.runAfter(4.0, std::bind(print1, "after 4.0"));
+    loop.runAfter(3.0, std::bind(print1, "after 3.0"));
+    loop.runAfter(2.0, std::bind(print1, "after 2.0"));
+    loop.runAfter(1.0, std::bind(print1, "after 1.0"));
 
     loop.loop();
+    cout << "eventloop exited" << endl;
+}
 
-    ::close(timerfd);
+void loop2()
+{
+    EventLoop loop;
+    g_loop = &loop;
 
+    print2("in loop2: adding timers in order with some duplicate timers");
+    loop.runAfter(1.0, std::bind(print2, "after 1.0"));
+    loop.runAfter(1.0, std::bind(print2, "after 1.0"));
+    loop.runAfter(1.0, std::bind(print2, "after 1.0"));
+    loop.runAfter(2.0, std::bind(print2, "after 2.0"));
+    loop.runAfter(3.0, std::bind(print2, "after 3.0"));
+    loop.runAfter(4.0, std::bind(print2, "after 4.0"));
+    loop.runAfter(4.0, std::bind(print2, "after 4.0"));
+    loop.runAfter(4.0, std::bind(print2, "after 4.0"));
+
+    loop.loop();
+    cout << "eventloop exited" << endl;
+}
+
+void loop3()
+{
+    EventLoop loop;
+    g_loop = &loop;
+
+    print3("in loop2: no timer");
+
+    loop.loop();
+    g_loop->quit();
+    cout << "eventloop exited" << endl;
+}
+
+void loopAll()
+{
+    loop1();
+    loop2();
+    loop3();
+}
+
+int main(int argc, char* argv[])
+{
+    loopAll();
     return 0;
 }
