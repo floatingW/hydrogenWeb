@@ -47,11 +47,11 @@ public:
         return TimeStamp(system_clock::now());
     }
 
-    friend bool operator<(const TimeStamp& l, const TimeStamp& r);
-    friend bool operator==(const TimeStamp& l, const TimeStamp& r);
-    friend bool operator<=(const TimeStamp& l, const TimeStamp& r);
+    friend bool operator<(const TimeStamp& lhs, const TimeStamp& rhs);
+    friend bool operator==(const TimeStamp& lhs, const TimeStamp& rhs);
+    friend bool operator<=(const TimeStamp& lhs, const TimeStamp& rhs);
 
-    friend TimeStamp operator+(const TimeStamp& l, double sec);
+    friend TimeStamp operator+(const TimeStamp& lhs, double sec);
 
     static const int microSecsPerSecond = 1000000;
 

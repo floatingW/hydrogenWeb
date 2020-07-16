@@ -11,35 +11,35 @@
 #include <cinttypes> // for printing format specifiers' macros
 #include <algorithm> // fill_n()
 
-bool operator<(const TimeStamp& l, const TimeStamp& r)
+bool operator<(const TimeStamp& lhs, const TimeStamp& rhs)
 {
     using namespace std::chrono;
-    auto lus = duration_cast<microseconds>(l._timePoint.time_since_epoch()).count();
-    auto rus = duration_cast<microseconds>(r._timePoint.time_since_epoch()).count();
+    auto lus = duration_cast<microseconds>(lhs._timePoint.time_since_epoch()).count();
+    auto rus = duration_cast<microseconds>(rhs._timePoint.time_since_epoch()).count();
     return lus < rus;
 }
 
-bool operator<=(const TimeStamp& l, const TimeStamp& r)
+bool operator<=(const TimeStamp& lhs, const TimeStamp& rhs)
 {
     using namespace std::chrono;
-    auto lus = duration_cast<microseconds>(l._timePoint.time_since_epoch()).count();
-    auto rus = duration_cast<microseconds>(r._timePoint.time_since_epoch()).count();
+    auto lus = duration_cast<microseconds>(lhs._timePoint.time_since_epoch()).count();
+    auto rus = duration_cast<microseconds>(rhs._timePoint.time_since_epoch()).count();
     return lus <= rus;
 }
 
-bool operator==(const TimeStamp& l, const TimeStamp& r)
+bool operator==(const TimeStamp& lhs, const TimeStamp& rhs)
 {
     using namespace std::chrono;
-    auto lus = duration_cast<microseconds>(l._timePoint.time_since_epoch()).count();
-    auto rus = duration_cast<microseconds>(r._timePoint.time_since_epoch()).count();
+    auto lus = duration_cast<microseconds>(lhs._timePoint.time_since_epoch()).count();
+    auto rus = duration_cast<microseconds>(rhs._timePoint.time_since_epoch()).count();
     return lus == rus;
 }
 
-TimeStamp operator+(const TimeStamp& l, double sec)
+TimeStamp operator+(const TimeStamp& lhs, double sec)
 {
     using namespace std::chrono;
     auto microSecs = static_cast<int64_t>(sec * TimeStamp::microSecsPerSecond);
-    return TimeStamp(l._timePoint + microseconds(microSecs));
+    return TimeStamp(lhs._timePoint + microseconds(microSecs));
 }
 
 std::string TimeStamp::toString()
