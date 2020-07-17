@@ -47,12 +47,7 @@ void TimerQueue::timerHandler()
     auto now = TimeStamp::now();
 
     // must read 8bytes from timerfd if poller is LT mode
-    uint64_t byte;
-    ssize_t n = ::read(_timerfd, &byte, sizeof byte);
-    if (n != sizeof byte)
-    {
-        unix_error("read error");
-    }
+    readFd();
 
     auto expiration = getExpiration(now);
 
@@ -143,4 +138,14 @@ int TimerQueue::resetTimerfd(TimeStamp expiration) const
     }
 
     return ret;
+}
+
+void TimerQueue::readFd() const
+{
+    uint64_t byte;
+    ssize_t n = ::read(_timerfd, &byte, sizeof byte);
+    if (n != sizeof byte)
+    {
+        unix_error("read timerfd error");
+    }
 }

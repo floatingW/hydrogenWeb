@@ -41,6 +41,7 @@ private:
     bool insert(Timer* pTimer);
 
     int resetTimerfd(TimeStamp expiration) const;
+    void readFd() const;
 
     EventLoop* _loop;
     const int _timerfd;
