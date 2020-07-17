@@ -6,6 +6,7 @@
  */
 
 #include "network/EventLoop.hpp"
+#include "core/EventLoopThread.hpp"
 #include "core/TimeStamp.hpp"
 
 #include <thread>
@@ -50,10 +51,10 @@ void fun0()
 int main(int argc, char* argv[])
 {
     cout << "in main(): pid = " << gettid() << ", g_flag = " << g_flag << endl;
-    EventLoop loop;
-    g_loop = &loop;
+    EventLoopThread loopThread;
+    g_loop = loopThread.start();
 
-    std::thread t(fun0);
-    loop.loop();
+    g_loop->runAfter(1.0, fun0);
+
     return 0;
 }
