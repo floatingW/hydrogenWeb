@@ -29,14 +29,19 @@ TimerQueue::~TimerQueue()
 
 void TimerQueue::addTimer(const TimerQueue::TimerCallBack& cb, TimeStamp endTime, double interval)
 {
+    auto pTimer = new Timer(cb, endTime, interval);
+    _loop->runInLoopThread([this, pTimer] { addTimerInLoopThread(pTimer); });
+}
+
+void TimerQueue::addTimerInLoopThread(Timer* pTimer)
+{
     _loop->assertInLoopThread();
 
-    auto pTimer = new Timer(cb, endTime, interval);
     bool first = insert(pTimer);
 
     if (first) // reset timerfd of this TimerQueue with the earliest expiration time
     {
-        resetTimerfd(endTime);
+        resetTimerfd(pTimer->expiredTime());
     }
 }
 

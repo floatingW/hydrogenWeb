@@ -43,6 +43,8 @@ private:
     int resetTimerfd(TimeStamp expiration) const;
     void readFd() const;
 
+    void addTimerInLoopThread(Timer* pTimer);
+
     EventLoop* _loop;
     const int _timerfd;
     Channel _timerChannel;
