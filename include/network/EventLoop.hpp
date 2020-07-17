@@ -11,6 +11,7 @@
 #include <vector>
 #include <memory> // unique_ptr
 #include <functional> // function
+#include <mutex> // mutex
 
 #include <sys/types.h> // pid_t
 #include <unistd.h> // gettid()
@@ -24,6 +25,7 @@ class TimeStamp;
 class EventLoop
 {
     typedef std::function<void()> TimerCallBack;
+    typedef std::function<void()> Functor;
 
 public:
     EventLoop();
@@ -41,9 +43,17 @@ public:
     void runEvery(double interval, const TimerCallBack& cb);
 
     /*
+     * run functions in eventLoop(loop thread)
+     */
+    void runInLoopThread(const Functor& functor);
+    void addToLoopThread(const Functor& functor);
+
+    /*
      * add or reset a channel
      */
     void updateChannel(Channel* channel);
+
+    void waken() const; // waken the loopthread
 
     /*
      * Get the eventloop of current thread
@@ -74,15 +84,23 @@ public:
 
 private:
     void abortNotInLoopThread();
+    void readFd() const; // for wakening
+    void processFunctors();
 
     typedef std::vector<Channel*> ChannelList;
 
     bool _looping;
     bool _quit;
+    bool _processingFunctors;
     const pid_t _threadId;
     std::unique_ptr<Poller> _poller;
     std::unique_ptr<TimerQueue> _timerQueue;
     ChannelList _activeChannels;
+    // for waken
+    int _wakenfd;
+    std::unique_ptr<Channel> _wakenChannel;
+    std::mutex _mutex;
+    std::vector<Functor> _unprocessedFunctors;
 };
 
 #endif //HYDROGENWEB_EVENTLOOP_HPP
