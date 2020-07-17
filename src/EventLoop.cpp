@@ -145,7 +145,7 @@ void EventLoop::processFunctors()
     std::vector<Functor> functors;
 
     {
-        std::lock_guard<std::mutex> lock(_mutex);
+        std::scoped_lock<std::mutex> lock(_mutex);
         functors.swap(_unprocessedFunctors);
     }
 
@@ -170,7 +170,7 @@ void EventLoop::runInLoopThread(const EventLoop::Functor& functor)
 void EventLoop::addToLoopThread(const EventLoop::Functor& functor)
 {
     {
-        std::lock_guard<std::mutex> lock(_mutex);
+        std::scoped_lock<std::mutex> lock(_mutex);
         _unprocessedFunctors.push_back(functor);
     }
 
