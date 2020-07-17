@@ -53,4 +53,10 @@ pthread_t Pthread_self();
  * wrappers for functions in sys/timerfd.h
  */
 int Timerfd_create();
+
+/*
+ * wrappers for functions in sys/eventfd.h
+ */
+int Eventfd();
+
 #endif //HYDROGENWEB_UNIXUTILITY_HPP

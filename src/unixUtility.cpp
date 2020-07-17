@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <sys/wait.h>
 #include <sys/timerfd.h>
+#include <sys/eventfd.h>
 
 #include "spdlog/spdlog.h"
 
@@ -167,4 +168,14 @@ int Timerfd_create()
         unix_error("Timerfd_create error");
     }
     return ret;
+}
+
+int Eventfd()
+{
+    int fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+    if (fd < 0)
+    {
+        unix_error("Eventfd error");
+    }
+    return fd;
 }
