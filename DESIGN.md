@@ -2,3 +2,6 @@
 ##roadmap
 1. Reactor模式的基本实现，包括：EventLoop/Poller/Channel/TimerQueue/EventLoopThread
 2. 现阶段使用linux的timerfd添加timer事件，并且处理过程与IO事件是统一的，只是调用过程比较繁琐，考虑添加一些定时器相关的类
+3. 增加线程管理相关的类
+4. 实现TCP部分
+5. 后续增加epoll支持/异步日志功能
