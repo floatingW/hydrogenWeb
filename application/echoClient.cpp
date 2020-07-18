@@ -2,7 +2,7 @@
 // Created by fwei on 6/20/20.
 //
 #include "system/unixUtility.hpp"
-#include "network/socket.hpp"
+#include "network/socketDetail.hpp"
 #include "io/robustio.hpp"
 #include <iostream>
 

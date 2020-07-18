@@ -9,7 +9,7 @@
 #include <sys/select.h>
 #include <iostream>
 #include <io/robustio.hpp>
-#include "network/socket.hpp"
+#include "network/socketDetail.hpp"
 #include "system/unixUtility.hpp"
 #include <unordered_map>
 #include <memory>
@@ -18,6 +18,7 @@
 #pragma ide diagnostic ignored "EndlessLoop"
 
 using namespace std;
+using namespace socketDetail;
 
 typedef struct
 {

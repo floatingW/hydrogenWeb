@@ -6,7 +6,7 @@
  */
 
 #include "system/unixUtility.hpp"
-#include "network/socket.hpp"
+#include "network/socketDetail.hpp"
 #include "io/robustio.hpp"
 #include "io/sio.hpp"
 #include <iostream>
