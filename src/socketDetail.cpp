@@ -8,15 +8,18 @@
  *   and are protocol-independent.
  */
 
-#include "network/socket.hpp"
+#include "network/socketDetail.hpp"
 #include "system/unixUtility.hpp"
 #include <cstring>
 #include <iostream>
 
 using namespace std;
+
 const int LISTENBACKLOG = 1024;
 
-int Socket(int domain, int type, int protocol)
+// TODO: refactor all
+
+int socketDetail::Socket(int domain, int type, int protocol)
 {
     int fd = socket(domain, type, protocol);
     if (fd < 0)
@@ -26,9 +29,9 @@ int Socket(int domain, int type, int protocol)
     return fd;
 }
 
-int Connect(int cliendfd, struct sockaddr* addr, socklen_t addrlen)
+int socketDetail::Connect(int cliendfd, const struct sockaddr& addr)
 {
-    int ret = connect(cliendfd, addr, addrlen);
+    int ret = connect(cliendfd, &addr, sizeof addr);
     if (ret < 0)
     {
         unix_error("Connect error");
@@ -36,7 +39,7 @@ int Connect(int cliendfd, struct sockaddr* addr, socklen_t addrlen)
     return ret;
 }
 
-int OpenClientFd(char* hostname, char* port)
+int socketDetail::OpenClientFd(char* hostname, char* port)
 {
     int clientfd = openClientFd(hostname, port);
     if (clientfd < 0)
@@ -46,37 +49,64 @@ int OpenClientFd(char* hostname, char* port)
     return clientfd;
 }
 
-int Bind(int sockfd, struct sockaddr* addr, socklen_t addrlen)
+int socketDetail::Bind(int sockfd, const struct sockaddr& addr)
 {
-    int ret = bind(sockfd, addr, addrlen);
+    int ret = bind(sockfd, &addr, sizeof addr);
     if (ret < 0)
     {
         unix_error("Bind error");
+        abort(); // should abort
     }
     return ret;
 }
 
-int Listen(int sockfd, int backlog)
+int socketDetail::Bind(int sockfd, const struct sockaddr_in& addr)
+{
+    int ret = bind(sockfd, reinterpret_cast<const struct sockaddr*>(&addr), sizeof addr);
+    if (ret < 0)
+    {
+        unix_error("Bind error");
+        abort(); // should abort
+    }
+    return ret;
+}
+
+int socketDetail::Listen(int sockfd, int backlog)
 {
     int ret = listen(sockfd, backlog);
     if (ret < 0)
     {
         unix_error("Listen error");
+        abort(); // should abort
     }
     return ret;
 }
 
-int Accept(int listenfd, struct sockaddr* addr, socklen_t* addrlen)
+int socketDetail::Accept(int listenfd, struct sockaddr& addr)
 {
-    int connfd = accept(listenfd, addr, addrlen);
+    socklen_t addrlen = sizeof addr;
+    int connfd = accept(listenfd, &addr, &addrlen);
     if (connfd < 0)
     {
         unix_error("Accept error");
+        // TODO: check errno
     }
     return connfd;
 }
 
-int OpenListenFd(char* port)
+int socketDetail::Accept(int listenfd, struct sockaddr_in& addr) // for class Socket
+{
+    socklen_t addrlen = sizeof addr;
+    int connfd = accept4(listenfd, reinterpret_cast<struct sockaddr*>(&addr), &addrlen, SOCK_NONBLOCK | SOCK_CLOEXEC);
+    if (connfd < 0)
+    {
+        unix_error("Accept error");
+        // TODO: check errno case-by-case
+    }
+    return connfd;
+}
+
+int socketDetail::OpenListenFd(char* port)
 {
     int listenfd = openListenFd(port);
     if (listenfd < 0)
@@ -86,7 +116,7 @@ int OpenListenFd(char* port)
     return listenfd;
 }
 
-int GetAddrInfo(const char* host, const char* service, struct addrinfo* hints, struct addrinfo** result)
+int socketDetail::GetAddrInfo(const char* host, const char* service, const struct addrinfo* hints, struct addrinfo** result)
 {
     int ret = getaddrinfo(host, service, hints, result);
     if (ret != 0)
@@ -96,12 +126,12 @@ int GetAddrInfo(const char* host, const char* service, struct addrinfo* hints, s
     return ret;
 }
 
-void FreeAddrInfo(struct addrinfo* result)
+void socketDetail::FreeAddrInfo(struct addrinfo* result)
 {
     freeaddrinfo(result);
 }
 
-int GetNameInfo(const struct sockaddr* addr, socklen_t addrlen, char* host, socklen_t hostlen, char* service, socklen_t servlen, int flags)
+int socketDetail::GetNameInfo(const struct sockaddr* addr, socklen_t addrlen, char* host, socklen_t hostlen, char* service, socklen_t servlen, int flags)
 {
     int ret = getnameinfo(addr, addrlen, host, hostlen, service, servlen, flags);
     if (ret != 0)
@@ -114,7 +144,7 @@ int GetNameInfo(const struct sockaddr* addr, socklen_t addrlen, char* host, sock
 /*
  * client/server helper
  */
-static int openClientFd(char* hostname, char* port)
+int socketDetail::openClientFd(char* hostname, char* port)
 {
     int clientfd, ret;
     struct addrinfo hints, *listp, *p;
@@ -162,7 +192,7 @@ static int openClientFd(char* hostname, char* port)
     }
 }
 
-static int openListenFd(char* port)
+int socketDetail::openListenFd(char* port)
 {
     int listenfd, ret, optval = 1;
     struct addrinfo hints, *listp, *p;
@@ -187,7 +217,7 @@ static int openListenFd(char* port)
         }
 
         // Eliminates "Address already in use" error from bind
-        setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (const void*)&optval, sizeof(int));
+        Setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (const void*)&optval, sizeof(int));
 
         /* Bind the descriptor to the address */
         if (bind(listenfd, p->ai_addr, p->ai_addrlen) == 0)
@@ -213,4 +243,28 @@ static int openListenFd(char* port)
     }
 
     return listenfd;
+}
+
+int socketDetail::Setsockopt(int sockfd, int level, int optname, const void* optval, socklen_t optlen)
+{
+    int ret = ::setsockopt(sockfd, level, optname, optval, optlen);
+    if (ret < 0)
+    {
+        unix_error("Setsockopt error");
+    }
+    return ret;
+}
+
+int socketDetail::nonblockingSocket()
+{
+    int sockfd = Socket(AF_INET, // always AF_INET, for internet connection
+                        SOCK_STREAM | // tcp socket
+                            SOCK_NONBLOCK | // non-blocking IO
+                            SOCK_CLOEXEC, // close this fd after exec()
+                        IPPROTO_TCP);
+    if (sockfd < 0)
+    {
+        abort();
+    }
+    return sockfd;
 }
