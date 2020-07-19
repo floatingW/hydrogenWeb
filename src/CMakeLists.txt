@@ -4,7 +4,8 @@ file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${hydrogenWeb_SOURCE_DIR}/include/*.hpp
 # Will be static or dynamic based on user setting
 add_library(core TimeStamp.cpp Timer.cpp TimerQueue.cpp EventLoopThread.cpp ${HEADER_LIST})
 add_library(io sio.cpp robustio.cpp ${HEADER_LIST})
-add_library(network socketDetail.cpp EventLoop.cpp Channel.cpp Poller.cpp ${HEADER_LIST})
+add_library(network socketDetail.cpp EventLoop.cpp Channel.cpp Poller.cpp
+        InetAddr.cpp Socket.cpp Acceptor.cpp ${HEADER_LIST})
 add_library(unixUtility unixUtility.cpp ${HEADER_LIST})
 add_library(sem sem.cpp sharedBuf.cpp ${HEADER_LIST})
 
