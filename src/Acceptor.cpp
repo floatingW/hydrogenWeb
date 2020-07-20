@@ -22,7 +22,7 @@ Acceptor::Acceptor(EventLoop* loop, const InetAddr& listenAddr) :
 
     // bind the server socket address to the sockfd of _listenSocket
     _listenSocket.bindAddr(listenAddr);
-    _acceptorChannel.setReadCallBack([this] { incomingHandler(); });
+    _acceptorChannel.setReadCallback([this] { incomingHandler(); });
     /* Acceptor is ready for listening now */
 }
 
@@ -44,11 +44,11 @@ void Acceptor::incomingHandler()
     // TODO: if no more fd
     if (connfd >= 0)
     {
-        if (_incomingCallBack)
+        if (_incomingCallback)
         {
             // move the Socket object to make sure the connfd will be eventually closed
             Socket incoming(connfd);
-            _incomingCallBack(std::move(incoming), newConnectionAddr);
+            _incomingCallback(std::move(incoming), newConnectionAddr);
         }
         else
         {

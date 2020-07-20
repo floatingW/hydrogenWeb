@@ -22,13 +22,13 @@ class Timer;
 
 class TimerQueue
 {
-    typedef std::function<void()> TimerCallBack;
+    typedef std::function<void()> TimerCallback;
 
 public:
     explicit TimerQueue(EventLoop* loop);
     ~TimerQueue();
 
-    void addTimer(const TimerCallBack& cb, TimeStamp endTime, double interval);
+    void addTimer(const TimerCallback& cb, TimeStamp endTime, double interval);
 
 private:
     typedef std::pair<TimeStamp, std::unique_ptr<Timer>> TimerEntry;

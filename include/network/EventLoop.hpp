@@ -24,7 +24,7 @@ class TimeStamp;
 
 class EventLoop
 {
-    typedef std::function<void()> TimerCallBack;
+    typedef std::function<void()> TimerCallback;
     typedef std::function<void()> Functor;
 
 public:
@@ -38,9 +38,9 @@ public:
     /*
      * set timer
      */
-    void runAt(TimeStamp time, const TimerCallBack& cb);
-    void runAfter(double delay, const TimerCallBack& cb);
-    void runEvery(double interval, const TimerCallBack& cb);
+    void runAt(TimeStamp time, const TimerCallback& cb);
+    void runAfter(double delay, const TimerCallback& cb);
+    void runEvery(double interval, const TimerCallback& cb);
 
     /*
      * run functions in eventLoop(loop thread)

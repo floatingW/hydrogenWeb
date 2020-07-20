@@ -18,7 +18,7 @@ TimerQueue::TimerQueue(EventLoop* loop) :
     _loop(loop), _timerfd(Timerfd_create()), _timerChannel(loop, _timerfd), _timers()
 {
     // Register the channel of TimerQueue to its own EventLoop
-    _timerChannel.setReadCallBack([this] { timerHandler(); });
+    _timerChannel.setReadCallback([this] { timerHandler(); });
     _timerChannel.enableReading();
 }
 
@@ -27,7 +27,7 @@ TimerQueue::~TimerQueue()
     ::close(_timerfd);
 }
 
-void TimerQueue::addTimer(const TimerQueue::TimerCallBack& cb, TimeStamp endTime, double interval)
+void TimerQueue::addTimer(const TimerQueue::TimerCallback& cb, TimeStamp endTime, double interval)
 {
     auto pTimer = new Timer(cb, endTime, interval);
     _loop->runInLoopThread([this, pTimer] { addTimerInLoopThread(pTimer); });

@@ -14,12 +14,12 @@
 
 #include <functional>
 
-typedef std::function<void()> TimerCallBack;
-
 class Timer
 {
+    typedef std::function<void()> TimerCallback;
+
 public:
-    Timer(const TimerCallBack& cb, TimeStamp endTime, double interval) :
+    Timer(const TimerCallback& cb, TimeStamp endTime, double interval) :
         _cb(cb), _endTime(endTime), _interval(interval), _repeat(interval > 0.0)
     {
     }
@@ -37,7 +37,7 @@ public:
     Timer& operator=(const Timer&) = delete;
 
 private:
-    const TimerCallBack _cb;
+    const TimerCallback _cb;
     TimeStamp _endTime; // expiration time
     const double _interval;
     const bool _repeat; // true if _interval > 0.0

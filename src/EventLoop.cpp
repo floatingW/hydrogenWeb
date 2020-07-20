@@ -41,7 +41,7 @@ EventLoop::EventLoop() :
         loopInThisThread = this;
     }
     // Register the channel of eventfd to this EventLoop for wakening
-    _wakenChannel->setReadCallBack([this] { readFd(); });
+    _wakenChannel->setReadCallback([this] { readFd(); });
     _wakenChannel->enableReading();
 }
 
@@ -104,17 +104,17 @@ EventLoop* EventLoop::getCurrentEventLoop()
     return loopInThisThread;
 }
 
-void EventLoop::runAt(TimeStamp time, const EventLoop::TimerCallBack& cb)
+void EventLoop::runAt(TimeStamp time, const EventLoop::TimerCallback& cb)
 {
     _timerQueue->addTimer(cb, time, 0.0);
 }
 
-void EventLoop::runAfter(double delay, const EventLoop::TimerCallBack& cb)
+void EventLoop::runAfter(double delay, const EventLoop::TimerCallback& cb)
 {
     runAt(TimeStamp::now() + delay, cb);
 }
 
-void EventLoop::runEvery(double interval, const TimerCallBack& cb)
+void EventLoop::runEvery(double interval, const TimerCallback& cb)
 {
     _timerQueue->addTimer(cb, TimeStamp::now() + interval, interval);
 }

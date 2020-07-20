@@ -21,15 +21,15 @@ public:
     Channel(EventLoop* loop, int fd);
 
     void handleEvent();
-    void setReadCallBack(const EventCallback& cb)
+    void setReadCallback(const EventCallback& cb)
     {
         _readCallback = cb;
     }
-    void setWriteCallBack(const EventCallback& cb)
+    void setWriteCallback(const EventCallback& cb)
     {
         _writeCallback = cb;
     }
-    void setErrorCallBack(const EventCallback& cb)
+    void setErrorCallback(const EventCallback& cb)
     {
         _errorCallback = cb;
     }
