@@ -29,6 +29,12 @@ public:
     void listen();
     bool listening() const { return _listening; }
 
+    /*
+     * non-copyable class
+     */
+    Acceptor(const Acceptor&) = delete;
+    Acceptor& operator=(const Acceptor&) = delete;
+
 private:
     void incomingHandler();
 
