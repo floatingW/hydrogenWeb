@@ -19,12 +19,12 @@ class InetAddr;
 
 class Acceptor
 {
-    typedef std::function<void(Socket&&, const InetAddr&)> newConnectionCallback;
+    typedef std::function<void(Socket&&, const InetAddr&)> NewConnectionCallback;
 
 public:
     Acceptor(EventLoop* loop, const InetAddr& addr);
 
-    void setNewConnectionCallback(const newConnectionCallback& cb) { _newConnectionCallback = cb; }
+    void setNewConnectionCallback(const NewConnectionCallback& cb) { _newConnectionCallback = cb; }
 
     void listen();
     bool listening() const { return _listening; }
@@ -38,7 +38,7 @@ public:
 private:
     void incomingHandler();
 
-    newConnectionCallback _newConnectionCallback;
+    NewConnectionCallback _newConnectionCallback;
     bool _listening;
     EventLoop* _loop;
     Socket _listenSocket;
