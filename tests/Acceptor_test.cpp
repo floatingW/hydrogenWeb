@@ -37,8 +37,8 @@ int main(int argc, char* argv[])
     Acceptor acceptor1(&loop, addr1);
     Acceptor acceptor2(&loop, addr2);
 
-    acceptor1.setIncomingCallback(sayHello);
-    acceptor2.setIncomingCallback(sayHi);
+    acceptor1.setNewConnectionCallback(sayHello);
+    acceptor2.setNewConnectionCallback(sayHi);
 
     acceptor1.listen();
     acceptor2.listen();

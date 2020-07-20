@@ -44,11 +44,11 @@ void Acceptor::incomingHandler()
     // TODO: if no more fd
     if (connfd >= 0)
     {
-        if (_incomingCallback)
+        if (_newConnectionCallback)
         {
             // move the Socket object to make sure the connfd will be eventually closed
             Socket incoming(connfd);
-            _incomingCallback(std::move(incoming), newConnectionAddr);
+            _newConnectionCallback(std::move(incoming), newConnectionAddr);
         }
         else
         {
