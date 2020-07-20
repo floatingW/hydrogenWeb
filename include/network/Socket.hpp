@@ -1,6 +1,6 @@
 /*
  * File: Socket.hpp
- * ---------------------------------
+ * ----------------
  * @author: Fu Wei
  * Interface of a RAII-style socketfd wrapper class.
  */
@@ -28,8 +28,27 @@ public:
     void listen() const;
     int accept(InetAddr& addr);
 
+    /*
+     * movable
+     */
+    Socket(Socket&& s) noexcept :
+        _sockfd(s._sockfd)
+    {
+        s._sockfd = -1;
+    }
+
+    Socket& operator=(Socket&& rhs) noexcept
+    {
+        if (this != &rhs)
+        {
+            _sockfd = rhs._sockfd;
+            rhs._sockfd = -1;
+        }
+        return *this;
+    }
+
 private:
-    const int _sockfd;
+    int _sockfd;
 };
 
 #endif //HYDROGENWEB_SOCKET_HPP

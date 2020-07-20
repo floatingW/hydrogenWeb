@@ -1,6 +1,6 @@
 /*
  * File: Socket.cpp
- * ---------------------------------
+ * ----------------
  * @author: Fu Wei
  * Implementation of Socket class.
  */
@@ -15,7 +15,10 @@
 
 Socket::~Socket()
 {
-    ::Close(_sockfd);
+    if (_sockfd >= 0)
+    { // close the fd if necessary
+        ::Close(_sockfd);
+    }
 }
 void Socket::setReuse(bool reuse) const
 {
