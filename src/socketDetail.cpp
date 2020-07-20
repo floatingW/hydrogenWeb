@@ -268,3 +268,17 @@ int socketDetail::nonblockingSocket()
     }
     return sockfd;
 }
+
+struct sockaddr_in socketDetail::getLocalAddr(int sockfd)
+{
+    struct sockaddr_in localAddr;
+    ::memset(&localAddr, 0, sizeof localAddr);
+
+    socklen_t addrlen = sizeof localAddr;
+    if (::getsockname(sockfd, reinterpret_cast<struct sockaddr*>(&localAddr), &addrlen) < 0)
+    {
+        unix_error("getLocalAddr error");
+    }
+
+    return localAddr;
+}

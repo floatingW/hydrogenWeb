@@ -59,5 +59,7 @@ namespace socketDetail
 
     int nonblockingSocket(); // create non-blocking sockfd
 
+    struct sockaddr_in getLocalAddr(int sockfd);
+
 }
 #endif //HYDROGENWEB_SOCKETDETAIL_HPP
