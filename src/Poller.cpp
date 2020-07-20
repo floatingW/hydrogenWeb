@@ -46,7 +46,7 @@ TimeStamp Poller::poll(int timeoutMs, Poller::ChannelList* activeChannels)
 void Poller::updateChannel(Channel* channel)
 {
     assertInLoopThread();
-    spdlog::info("Channel of fd {} with events {}", channel->fd(), channel->events());
+    spdlog::info("Poller::updateChannel(): Channel of fd {} with events {}", channel->fd(), channel->events());
 
     if (channel->index() < 0) // a new fd
     {
