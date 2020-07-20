@@ -73,7 +73,7 @@ void Poller::updateChannel(Channel* channel)
         struct pollfd& pfd = _fds[idx];
 
         assert(0 <= idx && idx < static_cast<int>(_fds.size()));
-        assert(pfd.fd == channel->fd() || pfd.fd == -1);
+        assert(pfd.fd == channel->fd() || pfd.fd == -channel->fd() - 1);
 
         pfd.events = static_cast<short>(channel->events());
         pfd.revents = 0;
