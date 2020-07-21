@@ -19,6 +19,7 @@ public:
     typedef std::function<void()> EventCallback;
 
     Channel(EventLoop* loop, int fd);
+    ~Channel();
 
     void handleEvent();
     void setReadCallback(const EventCallback& cb)
@@ -32,6 +33,10 @@ public:
     void setErrorCallback(const EventCallback& cb)
     {
         _errorCallback = cb;
+    }
+    void setCloseCallback(const EventCallback& cb)
+    {
+        _closeCallback = cb;
     }
 
     int fd() const { return _fd; }
@@ -47,6 +52,11 @@ public:
     void enableWriting()
     {
         _events |= READEVENT;
+        update();
+    }
+    void disableAll()
+    {
+        _events = EMPTYEVENT;
         update();
     }
 
@@ -73,10 +83,12 @@ private:
     int _events;
     int _revents;
     int _index; // used by Poller
+    bool _handlingEvent;
 
     EventCallback _readCallback;
     EventCallback _writeCallback;
     EventCallback _errorCallback;
+    EventCallback _closeCallback; /* fd closed */
 };
 
 #endif //HYDROGENWEB_CHANNEL_HPP

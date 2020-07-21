@@ -20,11 +20,27 @@ Channel::Channel(EventLoop* loop, int fd) :
     _loop(loop), _fd(fd), _events(0), _revents(0), _index(-1)
 {
 }
+
+Channel::~Channel()
+{
+    assert(!_handlingEvent); /* should definitely not handleEvent now */
+}
+
 void Channel::handleEvent()
 {
+    _handlingEvent = true;
+
     if (_revents & POLLNVAL)
     {
         spdlog::warn("Channel::handleEvent() - Invalid polling request");
+    }
+    if ((_revents & POLLHUP) && !(_revents & POLLIN))
+    {
+        spdlog::warn("Channel::handleEvent() - hung up");
+        if (_closeCallback)
+        {
+            _closeCallback();
+        }
     }
     if (_revents & (POLLERR | POLLNVAL))
     {
@@ -41,6 +57,8 @@ void Channel::handleEvent()
         if (_writeCallback)
             _writeCallback();
     }
+
+    _handlingEvent = false;
 }
 
 void Channel::update()
