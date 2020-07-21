@@ -85,6 +85,40 @@ void Poller::updateChannel(Channel* channel)
     }
 }
 
+void Poller::removeChannel(Channel* channel)
+{
+    assertInLoopThread();
+    spdlog::info("Poller::removeChannel(): Channel of fd {}", channel->fd());
+    assert(_channels.find(channel->fd()) != _channels.end());
+    assert(_channels[channel->fd()] == channel);
+    assert(channel->isEmptyEvent());
+
+    int idx = channel->index();
+    const struct pollfd& pfd = _fds[idx];
+    size_t n = _channels.erase(channel->fd());
+
+    assert(0 <= idx && idx < static_cast<int>(_fds.size()));
+    assert(pfd.fd == -channel->fd() - 1 && pfd.events == channel->events());
+    assert(n == 1);
+
+    if (static_cast<size_t>(idx) == _fds.size() - 1)
+    {
+        _fds.pop_back();
+    }
+    else
+    {
+        // swap and update idx instead of removing it directly, log(n) -> log(1)
+        int lastFd = _fds.back().fd;
+        iter_swap(_fds.begin() + idx, _fds.end() - 1);
+        if (lastFd < 0)
+        {
+            lastFd = -lastFd - 1;
+        }
+        _channels[lastFd]->set_index(idx);
+        _fds.pop_back();
+    }
+}
+
 void Poller::fillActiveChannels(int numEvents, Poller::ChannelList* activeChannels) const
 {
     for (auto ifd = _fds.cbegin();

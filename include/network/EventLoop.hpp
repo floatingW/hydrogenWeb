@@ -52,6 +52,10 @@ public:
      * add or reset a channel
      */
     void updateChannel(Channel* channel);
+    /*
+     * remove a channel
+     */
+    void removeChannel(Channel* channel);
 
     void waken() const; // waken the loopthread
 

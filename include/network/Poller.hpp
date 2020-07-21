@@ -31,6 +31,7 @@ public:
 
     // Called in its loop thread
     void updateChannel(Channel* channel);
+    void removeChannel(Channel* channel);
 
     /*
      * precondition checker
