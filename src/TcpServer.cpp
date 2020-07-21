@@ -59,5 +59,18 @@ void TcpServer::newConnectionHandler(Socket socket, const InetAddr& clientAddr)
     _connections[connName] = pConn;
     pConn->setConnectionCallback(_connCallback);
     pConn->setMessageCallback(_msgCallback);
+    pConn->setCloseCallback([this](auto& pConn) { removeConnection(pConn); });
     pConn->establishConnection();
+}
+
+void TcpServer::removeConnection(const TcpServer::pTcpConnection& conn)
+{
+    _loop->assertInLoopThread();
+
+    spdlog::info("TcpServer::removeConnection() - [{}] - {}", _serverName, conn->name());
+    size_t n = _connections.erase(conn->name());
+
+    assert(n == 1);
+
+    _loop->addToLoopThread([conn] { conn->destroyConnection(); });
 }

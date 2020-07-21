@@ -27,6 +27,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection>
                                const char* msg,
                                ssize_t length)>
         MessageCallback;
+    typedef std::function<void(const pTcpConnection&)> CloseCallback;
 
 public:
     TcpConnection(EventLoop* loop,
@@ -43,7 +44,10 @@ public:
 
     void setConnectionCallback(const ConnectionCallback& cb) { _connCallback = cb; }
     void setMessageCallback(const MessageCallback& cb) { _msgCallback = cb; }
+    void setCloseCallback(const CloseCallback& cb) { _closeCallback = cb; }
+
     void establishConnection();
+    void destroyConnection();
 
     /*
      * non-copyable
@@ -55,11 +59,15 @@ private:
     enum State
     {
         CONNECTING,
-        CONNECTED
+        CONNECTED,
+        DISCONNECTED
     };
 
     void setState(State s) { _state = s; }
     void connectionHandler();
+    void writeHandler();
+    void closeHandler();
+    void errorHandler();
 
     EventLoop* _loop;
     std::string _connName;
@@ -70,6 +78,7 @@ private:
     InetAddr _clientAddr;
     ConnectionCallback _connCallback;
     MessageCallback _msgCallback;
+    CloseCallback _closeCallback;
 };
 
 #endif //HYDROGENWEB_TCPCONNECTION_HPP

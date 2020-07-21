@@ -52,10 +52,62 @@ void TcpConnection::establishConnection()
     _connCallback(shared_from_this());
 }
 
+void TcpConnection::destroyConnection()
+{
+    _loop->assertInLoopThread();
+    assert(_state == CONNECTED);
+
+    setState(DISCONNECTED);
+    _channel->disableAll(); // a TcpConnection may be destroyed directly without closeHandler()
+    _connCallback(shared_from_this());
+    _loop->removeChannel(_channel.get());
+}
+
 void TcpConnection::connectionHandler()
 {
     char buf[65536];
     ssize_t n = ::read(_channel->fd(), buf, sizeof buf);
-    _msgCallback(shared_from_this(), buf, n);
-    // TODO: close connection while n == 0
+    if (n > 0)
+    {
+        if (_msgCallback)
+        {
+            _msgCallback(shared_from_this(), buf, n);
+        }
+    }
+    else if (n == 0)
+    {
+        closeHandler();
+    }
+    else
+    {
+        errorHandler();
+    }
+}
+
+void TcpConnection::writeHandler()
+{
+}
+
+// is bind to TcpServer's removeConnection()
+void TcpConnection::closeHandler()
+{
+    _loop->assertInLoopThread();
+
+    spdlog::info("TcpConnection::closeHandler() - state = {}", _state);
+
+    assert(_state == CONNECTED);
+
+    _channel->disableAll();
+
+    assert(_closeCallback);
+
+    _closeCallback(shared_from_this()); // send this TcpConnection to TcpServer
+}
+
+void TcpConnection::errorHandler()
+{
+    // don't close connection here, just logging
+    // connection will be closed normally
+    // TODO: more detailed error msg about sockfd
+    spdlog::error("TcpConnection::errorHandler() - [{}]", _connName);
 }

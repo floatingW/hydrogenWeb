@@ -12,6 +12,9 @@
 
 #include <unistd.h>
 
+int count = 0;
+EventLoop* g_loop;
+
 typedef std::shared_ptr<TcpConnection> pTcpConnection;
 
 void onConnection(const pTcpConnection& conn)
@@ -21,6 +24,10 @@ void onConnection(const pTcpConnection& conn)
         printf("onConnection(): new connection [%s] from %s\n",
                conn->name().c_str(),
                conn->clientAddr().toString().c_str());
+        if (++count > 5)
+        {
+            g_loop->quit();
+        }
     }
     else
     {
@@ -44,6 +51,7 @@ int main(int argc, char* argv[])
 
     InetAddr listenAddr(23456);
     EventLoop loop;
+    g_loop = &loop;
     TcpServer server(&loop, listenAddr);
     server.setConnectionCallback(onConnection);
     server.setMessageCallback(onMessage);

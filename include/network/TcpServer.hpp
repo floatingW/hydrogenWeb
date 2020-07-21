@@ -47,6 +47,7 @@ public:
 
 private:
     void newConnectionHandler(Socket socket, const InetAddr& clientAddr);
+    void removeConnection(const pTcpConnection& conn);
 
     typedef std::unordered_map<std::string, pTcpConnection> ConnectionMap;
 
