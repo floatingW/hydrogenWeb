@@ -8,6 +8,8 @@
 #ifndef HYDROGENWEB_CHANNEL_HPP
 #define HYDROGENWEB_CHANNEL_HPP
 
+#include "core/TimeStamp.hpp"
+
 #include <functional>
 
 // forward declaration
@@ -17,12 +19,13 @@ class Channel
 {
 public:
     typedef std::function<void()> EventCallback;
+    typedef std::function<void(TimeStamp)> ReadEventCallback;
 
     Channel(EventLoop* loop, int fd);
     ~Channel();
 
-    void handleEvent();
-    void setReadCallback(const EventCallback& cb)
+    void handleEvent(TimeStamp receiveTime);
+    void setReadCallback(const ReadEventCallback& cb)
     {
         _readCallback = cb;
     }
@@ -85,7 +88,7 @@ private:
     int _index; // used by Poller
     bool _handlingEvent;
 
-    EventCallback _readCallback;
+    ReadEventCallback _readCallback;
     EventCallback _writeCallback;
     EventCallback _errorCallback;
     EventCallback _closeCallback; /* fd closed */
