@@ -8,6 +8,8 @@
 #ifndef HYDROGENWEB_EVENTLOOP_HPP
 #define HYDROGENWEB_EVENTLOOP_HPP
 
+#include "core/TimeStamp.hpp"
+
 #include <vector>
 #include <memory> // unique_ptr
 #include <functional> // function
@@ -65,6 +67,11 @@ public:
     static EventLoop* getCurrentEventLoop();
 
     /*
+     * get the last poll return time
+     */
+    TimeStamp pollReturnTime() const;
+
+    /*
      * precondition check functions
      */
     void assertInLoopThread()
@@ -97,6 +104,7 @@ private:
     bool _quit;
     bool _processingFunctors;
     const pid_t _threadId;
+    TimeStamp _pollReturnTime;
     std::unique_ptr<Poller> _poller;
     std::unique_ptr<TimerQueue> _timerQueue;
     ChannelList _activeChannels;

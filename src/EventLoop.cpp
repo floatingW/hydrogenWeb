@@ -41,7 +41,7 @@ EventLoop::EventLoop() :
         loopInThisThread = this;
     }
     // Register the channel of eventfd to this EventLoop for wakening
-    _wakenChannel->setReadCallback([this] { readFd(); });
+    _wakenChannel->setReadCallback(std::bind(&EventLoop::readFd, this));
     _wakenChannel->enableReading();
 }
 
@@ -63,10 +63,10 @@ void EventLoop::loop()
     while (!_quit)
     {
         _activeChannels.clear();
-        _poller->poll(POLLTIME, &_activeChannels);
+        _pollReturnTime = _poller->poll(POLLTIME, &_activeChannels);
         for (auto ich = _activeChannels.cbegin(); ich < _activeChannels.cend(); ++ich)
         {
-            (*ich)->handleEvent();
+            (*ich)->handleEvent(_pollReturnTime);
         }
         // process the remaining functors
         processFunctors();
@@ -187,4 +187,7 @@ void EventLoop::addToLoopThread(const EventLoop::Functor& functor)
         waken();
     }
 }
-
+TimeStamp EventLoop::pollReturnTime() const
+{
+    return _pollReturnTime;
+}
