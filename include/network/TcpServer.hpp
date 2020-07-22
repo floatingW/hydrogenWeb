@@ -11,6 +11,7 @@
 
 #include "network/TcpConnection.hpp"
 #include "network/Acceptor.hpp"
+#include "core/GlobalCallbacks.hpp"
 
 #include <unordered_map>
 #include <string>
@@ -24,13 +25,6 @@ class Socket;
 
 class TcpServer
 {
-    typedef std::shared_ptr<TcpConnection> pTcpConnection;
-    typedef std::function<void(const pTcpConnection&)> ConnectionCallback;
-    typedef std::function<void(const pTcpConnection&,
-                               const char* msg,
-                               ssize_t length)>
-        MessageCallback;
-
 public:
     TcpServer(EventLoop* loop, const InetAddr& listenAddr);
 

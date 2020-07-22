@@ -63,7 +63,7 @@ void TcpServer::newConnectionHandler(Socket socket, const InetAddr& clientAddr)
     pConn->establishConnection();
 }
 
-void TcpServer::removeConnection(const TcpServer::pTcpConnection& conn)
+void TcpServer::removeConnection(const pTcpConnection& conn)
 {
     _loop->assertInLoopThread();
 

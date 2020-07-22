@@ -11,6 +11,7 @@
 
 #include "network/InetAddr.hpp"
 #include "network/Socket.hpp"
+#include "core/GlobalCallbacks.hpp"
 
 #include <string>
 #include <functional>
@@ -21,14 +22,6 @@ class Channel;
 
 class TcpConnection : public std::enable_shared_from_this<TcpConnection>
 {
-    typedef std::shared_ptr<TcpConnection> pTcpConnection;
-    typedef std::function<void(const pTcpConnection&)> ConnectionCallback;
-    typedef std::function<void(const pTcpConnection&,
-                               const char* msg,
-                               ssize_t length)>
-        MessageCallback;
-    typedef std::function<void(const pTcpConnection&)> CloseCallback;
-
 public:
     TcpConnection(EventLoop* loop,
                   std::string& connName,
