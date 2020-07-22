@@ -16,6 +16,8 @@ class TimeStamp
     typedef std::chrono::system_clock::time_point TimePoint;
 
 public:
+    TimeStamp() = default;
+
     explicit TimeStamp(TimePoint t) :
         _timePoint(t)
     {
