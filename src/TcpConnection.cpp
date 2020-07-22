@@ -31,7 +31,10 @@ TcpConnection::TcpConnection(EventLoop* loop,
                  (void*)this,
                  _socket.fd());
 
-    _channel->setReadCallback([this] { connectionHandler(); });
+    _channel->setReadCallback(std::bind(&TcpConnection::connectionHandler, this));
+    _channel->setWriteCallback(std::bind(&TcpConnection::writeHandler, this));
+    _channel->setCloseCallback(std::bind(&TcpConnection::closeHandler, this));
+    _channel->setErrorCallback(std::bind(&TcpConnection::errorHandler, this));
 }
 
 TcpConnection::~TcpConnection()
