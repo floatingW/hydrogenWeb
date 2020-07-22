@@ -22,7 +22,7 @@ Acceptor::Acceptor(EventLoop* loop, const InetAddr& listenAddr) :
 
     // bind the server socket address to the sockfd of _listenSocket
     _listenSocket.bindAddr(listenAddr);
-    _acceptorChannel.setReadCallback([this] { incomingHandler(); });
+    _acceptorChannel.setReadCallback(std::bind(&Acceptor::incomingHandler, this));
     /* Acceptor is ready for listening now */
 }
 

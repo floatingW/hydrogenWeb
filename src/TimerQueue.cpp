@@ -18,7 +18,7 @@ TimerQueue::TimerQueue(EventLoop* loop) :
     _loop(loop), _timerfd(Timerfd_create()), _timerChannel(loop, _timerfd), _timers()
 {
     // Register the channel of TimerQueue to its own EventLoop
-    _timerChannel.setReadCallback([this] { timerHandler(); });
+    _timerChannel.setReadCallback(std::bind(&TimerQueue::timerHandler, this));
     _timerChannel.enableReading();
 }
 
