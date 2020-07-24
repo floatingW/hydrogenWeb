@@ -54,7 +54,7 @@ public:
     }
     void enableWriting()
     {
-        _events |= READEVENT;
+        _events |= WRITEEVENT;
         update();
     }
     void disableAll()
