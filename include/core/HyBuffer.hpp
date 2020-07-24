@@ -30,12 +30,20 @@ public:
     size_t readableBytes() const { return _writerIndex - _readerIndex; }
     size_t writableBytes() const { return _buffer.size() - _readerIndex; }
 
+    void clear(size_t length) { _readerIndex += length; }
+    void clearAll()
+    {
+        _readerIndex = PREPENDABLEBYTES;
+        _writerIndex = PREPENDABLEBYTES;
+    }
+
+    const char* payload() const { return _buffer.data() + _readerIndex; }
+
     std::string readAsString()
     {
         std::string contentStr(payload(),
                                payload() + readableBytes());
-        _readerIndex = PREPENDABLEBYTES;
-        _writerIndex = PREPENDABLEBYTES;
+        clearAll();
         return contentStr;
     }
 
