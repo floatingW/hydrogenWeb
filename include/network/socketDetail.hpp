@@ -61,5 +61,7 @@ namespace socketDetail
 
     struct sockaddr_in getLocalAddr(int sockfd);
 
+    void shutdownWrite(int sockfd);
+
 }
 #endif //HYDROGENWEB_SOCKETDETAIL_HPP

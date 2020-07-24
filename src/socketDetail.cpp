@@ -282,3 +282,11 @@ struct sockaddr_in socketDetail::getLocalAddr(int sockfd)
 
     return localAddr;
 }
+
+void socketDetail::shutdownWrite(int sockfd)
+{
+    if (::shutdown(sockfd, SHUT_WR) < 0) /** disables further send operations */
+    {
+        unix_error("socketDetail::shutdownWrite error");
+    }
+}
