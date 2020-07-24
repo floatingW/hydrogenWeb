@@ -12,6 +12,7 @@
 #include "network/InetAddr.hpp"
 #include "network/Socket.hpp"
 #include "core/GlobalCallbacks.hpp"
+#include "core/HyBuffer.hpp"
 
 #include <string>
 #include <functional>
@@ -57,7 +58,7 @@ private:
     };
 
     void setState(State s) { _state = s; }
-    void connectionHandler();
+    void connectionHandler(TimeStamp receiveTime);
     void writeHandler();
     void closeHandler();
     void errorHandler();
@@ -72,6 +73,7 @@ private:
     ConnectionCallback _connCallback;
     MessageCallback _msgCallback;
     CloseCallback _closeCallback;
+    HyBuffer _inputBuffer;
 };
 
 #endif //HYDROGENWEB_TCPCONNECTION_HPP

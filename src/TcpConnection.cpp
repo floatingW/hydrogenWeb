@@ -31,7 +31,7 @@ TcpConnection::TcpConnection(EventLoop* loop,
                  (void*)this,
                  _socket.fd());
 
-    _channel->setReadCallback(std::bind(&TcpConnection::connectionHandler, this));
+    _channel->setReadCallback(std::bind(&TcpConnection::connectionHandler, this, std::placeholders::_1));
     _channel->setWriteCallback(std::bind(&TcpConnection::writeHandler, this));
     _channel->setCloseCallback(std::bind(&TcpConnection::closeHandler, this));
     _channel->setErrorCallback(std::bind(&TcpConnection::errorHandler, this));
@@ -66,15 +66,14 @@ void TcpConnection::destroyConnection()
     _loop->removeChannel(_channel.get());
 }
 
-void TcpConnection::connectionHandler()
+void TcpConnection::connectionHandler(TimeStamp receiveTime)
 {
-    char buf[65536];
-    ssize_t n = ::read(_channel->fd(), buf, sizeof buf);
+    size_t n = _inputBuffer.readFd(_socket.fd());
     if (n > 0)
     {
         if (_msgCallback)
         {
-            _msgCallback(shared_from_this(), buf, n);
+            _msgCallback(shared_from_this(), _inputBuffer, receiveTime);
         }
     }
     else if (n == 0)
