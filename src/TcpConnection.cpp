@@ -8,6 +8,7 @@
 #include "network/TcpConnection.hpp"
 #include "network/Channel.hpp"
 #include "network/EventLoop.hpp"
+#include "system/unixUtility.hpp"
 
 #include <unistd.h> // for read(3)
 
@@ -58,7 +59,7 @@ void TcpConnection::establishConnection()
 void TcpConnection::destroyConnection()
 {
     _loop->assertInLoopThread();
-    assert(_state == CONNECTED);
+    assert(_state == CONNECTED || _state == DISCONNECTING);
 
     setState(DISCONNECTED);
     _channel->disableAll(); // a TcpConnection may be destroyed directly without closeHandler()
@@ -88,6 +89,36 @@ void TcpConnection::connectionHandler(TimeStamp receiveTime)
 
 void TcpConnection::writeHandler()
 {
+    if (_channel->isWriting())
+    {
+        ssize_t n = ::write(_socket.fd(),
+                            _outputBuffer.payload(),
+                            _outputBuffer.readableBytes());
+        if (n > 0) /** write some */
+        {
+            _outputBuffer.clear(static_cast<size_t>(n));
+            if (_outputBuffer.readableBytes() == 0) /** write completely */
+            {
+                _channel->disableWriting();
+                if (_state == DISCONNECTING)
+                {
+                    shutdownInLoopThread();
+                }
+            }
+            else /** not completely */
+            {
+                spdlog::info("TcpConnection::writeHandler- wrote {} bytes (not complete)", n);
+            }
+        }
+        else /** write error */
+        {
+            unix_error("TcpConnection::writeHandler - write error");
+        }
+    }
+    else /** the connection is already down */
+    {
+        spdlog::info("TcpConnection::writeHandler - Connection is disconnected, cannot write");
+    }
 }
 
 // is bind to TcpServer's removeConnection()
@@ -97,7 +128,7 @@ void TcpConnection::closeHandler()
 
     spdlog::info("TcpConnection::closeHandler() - state = {}", _state);
 
-    assert(_state == CONNECTED);
+    assert(_state == CONNECTED || _state == DISCONNECTING);
 
     _channel->disableAll();
 
@@ -112,4 +143,78 @@ void TcpConnection::errorHandler()
     // connection will be closed normally
     // TODO: more detailed error msg about sockfd
     spdlog::error("TcpConnection::errorHandler() - [{}]", _connName);
+}
+
+void TcpConnection::send(const std::string& msg)
+{
+    if (_state == CONNECTED)
+    {
+        if (_loop->isInLoopThread())
+        {
+            sendInLoopThread(msg);
+        }
+        else
+        {
+            // TODO: avoid copying the msg
+            _loop->runInLoopThread(std::bind(&TcpConnection::sendInLoopThread,
+                                             this,
+                                             msg));
+        }
+    }
+}
+
+void TcpConnection::sendInLoopThread(const std::string& msg)
+{
+    _loop->assertInLoopThread();
+
+    ssize_t n = 0;
+    if (!_channel->isWriting() && _outputBuffer.readableBytes() == 0)
+    { /** try writing data directly */
+        n = ::write(_socket.fd(), msg.data(), msg.length());
+        if (n >= 0)
+        {
+            if (static_cast<size_t>(n) < msg.length())
+            {
+                spdlog::info("TcpConnection::sendInLoopThread - wrote {}/{} bytes",
+                             n,
+                             msg.length());
+            }
+        }
+        else if (n < 0)
+        {
+            n = 0;
+            unix_error("TcpConnection::sendInLoopThread - write error");
+        }
+    }
+
+    if (static_cast<size_t>(n) < msg.length())
+    { /** append remaining data to buffer and indicate write event for poller */
+        _outputBuffer.append(msg.data() + n, msg.length() - n);
+        if (!_channel->isWriting())
+        {
+            _channel->enableWriting();
+        }
+    }
+}
+
+void TcpConnection::shutdown()
+{
+    if (_state == CONNECTED)
+    {
+        //TODO: compare and swap
+        setState(DISCONNECTING);
+        /** use shared_from_this() to retain this TcpConnection */
+        _loop->runInLoopThread(std::bind(&TcpConnection::shutdownInLoopThread,
+                                         shared_from_this()));
+    }
+}
+
+void TcpConnection::shutdownInLoopThread()
+{
+    _loop->assertInLoopThread();
+
+    if (!_channel->isWriting())
+    {
+        _socket.shutdownWrite(); /** no more transmissions */
+    }
 }

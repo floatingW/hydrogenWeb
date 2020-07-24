@@ -43,6 +43,9 @@ public:
     void establishConnection();
     void destroyConnection();
 
+    void send(const std::string& msg);
+    void shutdown();
+
     /*
      * non-copyable
      */
@@ -54,7 +57,8 @@ private:
     {
         CONNECTING,
         CONNECTED,
-        DISCONNECTED
+        DISCONNECTED,
+        DISCONNECTING
     };
 
     void setState(State s) { _state = s; }
@@ -62,6 +66,8 @@ private:
     void writeHandler();
     void closeHandler();
     void errorHandler();
+    void sendInLoopThread(const std::string& msg);
+    void shutdownInLoopThread();
 
     EventLoop* _loop;
     std::string _connName;
@@ -74,6 +80,7 @@ private:
     MessageCallback _msgCallback;
     CloseCallback _closeCallback;
     HyBuffer _inputBuffer;
+    HyBuffer _outputBuffer;
 };
 
 #endif //HYDROGENWEB_TCPCONNECTION_HPP
