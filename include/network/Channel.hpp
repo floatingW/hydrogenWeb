@@ -46,6 +46,7 @@ public:
     int events() const { return _events; }
     void set_revents(int revents) { _revents = revents; }
     bool isEmptyEvent() const { return _events == EMPTYEVENT; }
+    bool isWriting() const { return _events & WRITEEVENT; }
 
     void enableReading()
     {
@@ -55,6 +56,11 @@ public:
     void enableWriting()
     {
         _events |= WRITEEVENT;
+        update();
+    }
+    void disableWriting()
+    {
+        _events &= ~WRITEEVENT;
         update();
     }
     void disableAll()
