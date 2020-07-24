@@ -2,7 +2,8 @@
 file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${hydrogenWeb_SOURCE_DIR}/include/*.hpp")
 
 # Will be static or dynamic based on user setting
-add_library(core TimeStamp.cpp Timer.cpp TimerQueue.cpp EventLoopThread.cpp ${HEADER_LIST})
+add_library(core TimeStamp.cpp Timer.cpp TimerQueue.cpp EventLoopThread.cpp
+        HyBuffer.cpp ${HEADER_LIST})
 add_library(io sio.cpp robustio.cpp ${HEADER_LIST})
 add_library(network socketDetail.cpp EventLoop.cpp Channel.cpp Poller.cpp
         InetAddr.cpp Socket.cpp Acceptor.cpp TcpServer.cpp TcpConnection.cpp ${HEADER_LIST})
