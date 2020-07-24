@@ -32,8 +32,8 @@ public:
 
     std::string readAsString()
     {
-        std::string contentStr(_buffer.begin() + PREPENDABLEBYTES,
-                               _buffer.begin() + writableBytes());
+        std::string contentStr(payload(),
+                               payload() + readableBytes());
         _readerIndex = PREPENDABLEBYTES;
         _writerIndex = PREPENDABLEBYTES;
         return contentStr;
