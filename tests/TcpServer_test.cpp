@@ -38,14 +38,14 @@ void onConnection(const pTcpConnection& conn)
 }
 
 void onMessage(const pTcpConnection& conn,
-               HyBuffer& buffer,
+               HyBuffer* buffer,
                TimeStamp receiveTime)
 {
     printf("onMessage(): received %zd bytes from connection [%s] at %s\n",
-           buffer.readableBytes(),
+           buffer->readableBytes(),
            conn->name().c_str(),
            receiveTime.toString().c_str());
-    conn->send(buffer.readAsString());
+    conn->send(buffer->readAsString());
 }
 
 int main(int argc, char* argv[])

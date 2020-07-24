@@ -74,7 +74,7 @@ void TcpConnection::connectionHandler(TimeStamp receiveTime)
     {
         if (_msgCallback)
         {
-            _msgCallback(shared_from_this(), _inputBuffer, receiveTime);
+            _msgCallback(shared_from_this(), &_inputBuffer, receiveTime);
         }
     }
     else if (n == 0)

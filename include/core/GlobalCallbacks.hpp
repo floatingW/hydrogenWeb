@@ -19,7 +19,7 @@ typedef std::shared_ptr<TcpConnection> pTcpConnection;
 
 typedef std::function<void(const pTcpConnection&)> ConnectionCallback;
 typedef std::function<void(const pTcpConnection&,
-                           HyBuffer& buf,
+                           HyBuffer* buf,
                            TimeStamp receiveTime)>
     MessageCallback;
 typedef std::function<void(const pTcpConnection&)> CloseCallback;
