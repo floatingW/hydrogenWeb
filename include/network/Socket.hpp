@@ -27,6 +27,7 @@ public:
     void bindAddr(const InetAddr& listenAddr) const;
     void listen() const;
     int accept(InetAddr& addr);
+    void shutdownWrite();
 
     /*
      * movable

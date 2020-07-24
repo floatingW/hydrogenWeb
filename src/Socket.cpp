@@ -44,3 +44,7 @@ int Socket::accept(InetAddr& returnAddr)
     }
     return fd;
 }
+void Socket::shutdownWrite()
+{
+    socketDetail::shutdownWrite(_sockfd);
+}
