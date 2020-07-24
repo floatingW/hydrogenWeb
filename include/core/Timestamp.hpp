@@ -55,6 +55,11 @@ public:
 
     friend Timestamp operator+(const Timestamp& lhs, double sec);
 
+    void swap(Timestamp& other)
+    {
+        std::swap(_timePoint, other._timePoint);
+    }
+
     static const int microSecsPerSecond = 1000000;
 
 private:
