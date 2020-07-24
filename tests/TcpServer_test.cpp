@@ -45,7 +45,7 @@ void onMessage(const pTcpConnection& conn,
            buffer.readableBytes(),
            conn->name().c_str(),
            receiveTime.toString().c_str());
-    printf("onMessage(): received message - %s\n", buffer.readAsString().c_str());
+    conn->send(buffer.readAsString());
 }
 
 int main(int argc, char* argv[])
