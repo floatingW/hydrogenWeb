@@ -1,6 +1,6 @@
 /*
  * File: Poller.cpp
- * ---------------------------------
+ * ----------------
  * @author: Fu Wei
  *
  */
@@ -20,10 +20,10 @@ Poller::~Poller()
 {
 }
 
-TimeStamp Poller::poll(int timeoutMs, Poller::ChannelList* activeChannels)
+Timestamp Poller::poll(int timeoutMs, Poller::ChannelList* activeChannels)
 {
     int numEvents = ::poll(&(*_fds.begin()), _fds.size(), timeoutMs);
-    TimeStamp now(TimeStamp::now());
+    Timestamp now(Timestamp::now());
 
     if (numEvents > 0)
     {

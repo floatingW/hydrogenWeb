@@ -1,6 +1,6 @@
 /*
  * File: Channel.cpp
- * ---------------------------------
+ * -----------------
  * @author: Fu Wei
  *
  */
@@ -26,7 +26,7 @@ Channel::~Channel()
     assert(!_handlingEvent); /* should definitely not handleEvent now */
 }
 
-void Channel::handleEvent(TimeStamp receiveTime)
+void Channel::handleEvent(Timestamp receiveTime)
 {
     _handlingEvent = true;
 

@@ -62,7 +62,7 @@ private:
     };
 
     void setState(State s) { _state = s; }
-    void connectionHandler(TimeStamp receiveTime);
+    void connectionHandler(Timestamp receiveTime);
     void writeHandler();
     void closeHandler();
     void errorHandler();

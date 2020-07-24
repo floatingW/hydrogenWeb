@@ -67,7 +67,7 @@ void TcpConnection::destroyConnection()
     _loop->removeChannel(_channel.get());
 }
 
-void TcpConnection::connectionHandler(TimeStamp receiveTime)
+void TcpConnection::connectionHandler(Timestamp receiveTime)
 {
     size_t n = _inputBuffer.readFd(_socket.fd());
     if (n > 0)

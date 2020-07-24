@@ -9,7 +9,7 @@
 #ifndef HYDROGENWEB_TIMERQUEUE_HPP
 #define HYDROGENWEB_TIMERQUEUE_HPP
 
-#include "core/TimeStamp.hpp"
+#include "core/Timestamp.hpp"
 #include "core/Timer.hpp"
 #include "network/Channel.hpp"
 
@@ -28,19 +28,19 @@ public:
     explicit TimerQueue(EventLoop* loop);
     ~TimerQueue();
 
-    void addTimer(const TimerCallback& cb, TimeStamp endTime, double interval);
+    void addTimer(const TimerCallback& cb, Timestamp endTime, double interval);
 
 private:
-    typedef std::pair<TimeStamp, std::unique_ptr<Timer>> TimerEntry;
+    typedef std::pair<Timestamp, std::unique_ptr<Timer>> TimerEntry;
     typedef std::set<TimerEntry> TimerList;
 
     void timerHandler();
 
-    std::vector<TimerEntry> getExpiration(TimeStamp now);
-    void reset(std::vector<TimerEntry> expired, TimeStamp now);
+    std::vector<TimerEntry> getExpiration(Timestamp now);
+    void reset(std::vector<TimerEntry> expired, Timestamp now);
     bool insert(Timer* pTimer);
 
-    int resetTimerfd(TimeStamp expiration) const;
+    int resetTimerfd(Timestamp expiration) const;
     void readFd() const;
 
     void addTimerInLoopThread(Timer* pTimer);

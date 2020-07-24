@@ -1,13 +1,13 @@
 /*
  * File: Timer.cpp
- * ---------------------------------
+ * ---------------
  * @author: Fu Wei
  *
  */
 
 #include "core/Timer.hpp"
 
-void Timer::restart(TimeStamp now)
+void Timer::restart(Timestamp now)
 {
     if (_repeat)
     {

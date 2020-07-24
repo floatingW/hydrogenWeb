@@ -39,7 +39,7 @@ void onConnection(const pTcpConnection& conn)
 
 void onMessage(const pTcpConnection& conn,
                HyBuffer* buffer,
-               TimeStamp receiveTime)
+               Timestamp receiveTime)
 {
     printf("onMessage(): received %zd bytes from connection [%s] at %s\n",
            buffer->readableBytes(),

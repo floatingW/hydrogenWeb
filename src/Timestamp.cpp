@@ -1,17 +1,17 @@
 /*
- * File: TimeStamp.cpp
- * ---------------------------------
+ * File: Timestamp.cpp
+ * -------------------
  * @author: Fu Wei
  *
  */
 
-#include "core/TimeStamp.hpp"
+#include "core/Timestamp.hpp"
 
 #include <cstdio> // snprintf()
 #include <cinttypes> // for printing format specifiers' macros
 #include <algorithm> // fill_n()
 
-bool operator<(const TimeStamp& lhs, const TimeStamp& rhs)
+bool operator<(const Timestamp& lhs, const Timestamp& rhs)
 {
     using namespace std::chrono;
     auto lus = duration_cast<microseconds>(lhs._timePoint.time_since_epoch()).count();
@@ -19,7 +19,7 @@ bool operator<(const TimeStamp& lhs, const TimeStamp& rhs)
     return lus < rus;
 }
 
-bool operator<=(const TimeStamp& lhs, const TimeStamp& rhs)
+bool operator<=(const Timestamp& lhs, const Timestamp& rhs)
 {
     using namespace std::chrono;
     auto lus = duration_cast<microseconds>(lhs._timePoint.time_since_epoch()).count();
@@ -27,7 +27,7 @@ bool operator<=(const TimeStamp& lhs, const TimeStamp& rhs)
     return lus <= rus;
 }
 
-bool operator==(const TimeStamp& lhs, const TimeStamp& rhs)
+bool operator==(const Timestamp& lhs, const Timestamp& rhs)
 {
     using namespace std::chrono;
     auto lus = duration_cast<microseconds>(lhs._timePoint.time_since_epoch()).count();
@@ -35,14 +35,14 @@ bool operator==(const TimeStamp& lhs, const TimeStamp& rhs)
     return lus == rus;
 }
 
-TimeStamp operator+(const TimeStamp& lhs, double sec)
+Timestamp operator+(const Timestamp& lhs, double sec)
 {
     using namespace std::chrono;
-    auto microSecs = static_cast<int64_t>(sec * TimeStamp::microSecsPerSecond);
-    return TimeStamp(lhs._timePoint + microseconds(microSecs));
+    auto microSecs = static_cast<int64_t>(sec * Timestamp::microSecsPerSecond);
+    return Timestamp(lhs._timePoint + microseconds(microSecs));
 }
 
-std::string TimeStamp::toString()
+std::string Timestamp::toString()
 {
     auto microSec = toMicroSec();
     auto seconds = microSec / microSecsPerSecond;

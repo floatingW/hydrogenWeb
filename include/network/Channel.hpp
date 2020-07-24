@@ -1,6 +1,6 @@
 /*
  * File: Channel.hpp
- * ---------------------------------
+ * -----------------
  * @author: Fu Wei
  *
  */
@@ -8,7 +8,7 @@
 #ifndef HYDROGENWEB_CHANNEL_HPP
 #define HYDROGENWEB_CHANNEL_HPP
 
-#include "core/TimeStamp.hpp"
+#include "core/Timestamp.hpp"
 
 #include <functional>
 
@@ -19,12 +19,12 @@ class Channel
 {
 public:
     typedef std::function<void()> EventCallback;
-    typedef std::function<void(TimeStamp)> ReadEventCallback;
+    typedef std::function<void(Timestamp)> ReadEventCallback;
 
     Channel(EventLoop* loop, int fd);
     ~Channel();
 
-    void handleEvent(TimeStamp receiveTime);
+    void handleEvent(Timestamp receiveTime);
     void setReadCallback(const ReadEventCallback& cb)
     {
         _readCallback = cb;

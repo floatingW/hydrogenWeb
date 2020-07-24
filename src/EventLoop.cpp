@@ -1,6 +1,6 @@
 /*
  * File: EventLoop.cpp
- * ---------------------------------
+ * -------------------
  * @author: Fu Wei
  *
  */
@@ -112,19 +112,19 @@ EventLoop* EventLoop::getCurrentEventLoop()
     return loopInThisThread;
 }
 
-void EventLoop::runAt(TimeStamp time, const EventLoop::TimerCallback& cb)
+void EventLoop::runAt(Timestamp time, const EventLoop::TimerCallback& cb)
 {
     _timerQueue->addTimer(cb, time, 0.0);
 }
 
 void EventLoop::runAfter(double delay, const EventLoop::TimerCallback& cb)
 {
-    runAt(TimeStamp::now() + delay, cb);
+    runAt(Timestamp::now() + delay, cb);
 }
 
 void EventLoop::runEvery(double interval, const TimerCallback& cb)
 {
-    _timerQueue->addTimer(cb, TimeStamp::now() + interval, interval);
+    _timerQueue->addTimer(cb, Timestamp::now() + interval, interval);
 }
 
 void EventLoop::waken() const
@@ -187,7 +187,7 @@ void EventLoop::addToLoopThread(const EventLoop::Functor& functor)
         waken();
     }
 }
-TimeStamp EventLoop::pollReturnTime() const
+Timestamp EventLoop::pollReturnTime() const
 {
     return _pollReturnTime;
 }

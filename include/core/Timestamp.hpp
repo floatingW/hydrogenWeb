@@ -1,5 +1,5 @@
 /*
- * File: TimeStamp.hpp
+ * File: Timestamp.hpp
  * -------------------
  * @author: Fu Wei
  *
@@ -11,14 +11,14 @@
 #include <chrono>
 #include <string>
 
-class TimeStamp
+class Timestamp
 {
     typedef std::chrono::system_clock::time_point TimePoint;
 
 public:
-    TimeStamp() = default;
+    Timestamp() = default;
 
-    explicit TimeStamp(TimePoint t) :
+    explicit Timestamp(TimePoint t) :
         _timePoint(t)
     {
     }
@@ -43,17 +43,17 @@ public:
 
     std::string toString();
 
-    static TimeStamp now()
+    static Timestamp now()
     {
         using namespace std::chrono;
-        return TimeStamp(system_clock::now());
+        return Timestamp(system_clock::now());
     }
 
-    friend bool operator<(const TimeStamp& lhs, const TimeStamp& rhs);
-    friend bool operator==(const TimeStamp& lhs, const TimeStamp& rhs);
-    friend bool operator<=(const TimeStamp& lhs, const TimeStamp& rhs);
+    friend bool operator<(const Timestamp& lhs, const Timestamp& rhs);
+    friend bool operator==(const Timestamp& lhs, const Timestamp& rhs);
+    friend bool operator<=(const Timestamp& lhs, const Timestamp& rhs);
 
-    friend TimeStamp operator+(const TimeStamp& lhs, double sec);
+    friend Timestamp operator+(const Timestamp& lhs, double sec);
 
     static const int microSecsPerSecond = 1000000;
 

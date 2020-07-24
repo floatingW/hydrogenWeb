@@ -1,6 +1,6 @@
 /*
  * File: Poller.hpp
- * ---------------------------------
+ * ----------------
  * @author: Fu Wei
  *
  */
@@ -9,7 +9,7 @@
 #define HYDROGENWEB_POLLER_HPP
 
 #include "network/EventLoop.hpp"
-#include "core/TimeStamp.hpp"
+#include "core/Timestamp.hpp"
 
 #include <vector>
 #include <map>
@@ -27,7 +27,7 @@ public:
     explicit Poller(EventLoop* loop);
     ~Poller();
 
-    TimeStamp poll(int timeoutMs, ChannelList* activeChannels);
+    Timestamp poll(int timeoutMs, ChannelList* activeChannels);
 
     // Called in its loop thread
     void updateChannel(Channel* channel);

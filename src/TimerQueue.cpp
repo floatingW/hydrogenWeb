@@ -1,6 +1,6 @@
 /*
  * File: TimerQueue.cpp
- * ---------------------------------
+ * --------------------
  * @author: Fu Wei
  * Implementation of TimerQueue
  */
@@ -27,7 +27,7 @@ TimerQueue::~TimerQueue()
     ::close(_timerfd);
 }
 
-void TimerQueue::addTimer(const TimerQueue::TimerCallback& cb, TimeStamp endTime, double interval)
+void TimerQueue::addTimer(const TimerQueue::TimerCallback& cb, Timestamp endTime, double interval)
 {
     auto pTimer = new Timer(cb, endTime, interval);
     _loop->runInLoopThread([this, pTimer] { addTimerInLoopThread(pTimer); });
@@ -49,7 +49,7 @@ void TimerQueue::timerHandler()
 {
     _loop->assertInLoopThread();
 
-    auto now = TimeStamp::now();
+    auto now = Timestamp::now();
 
     // must read 8bytes from timerfd if poller is LT mode
     readFd();
@@ -64,7 +64,7 @@ void TimerQueue::timerHandler()
     reset(std::move(expiration), now);
 }
 
-std::vector<TimerQueue::TimerEntry> TimerQueue::getExpiration(TimeStamp now)
+std::vector<TimerQueue::TimerEntry> TimerQueue::getExpiration(Timestamp now)
 {
     std::vector<TimerEntry> expiration;
 
@@ -80,7 +80,7 @@ std::vector<TimerQueue::TimerEntry> TimerQueue::getExpiration(TimeStamp now)
  * TimerQueue::reset - each time while finishing expired events, must reset timerfd with the
  * earliest Timer in the remaining Timers and re-insert the repeat timers to TimerQueue
  */
-void TimerQueue::reset(std::vector<TimerEntry> expired, TimeStamp now)
+void TimerQueue::reset(std::vector<TimerEntry> expired, Timestamp now)
 {
     auto expiredSize = expired.size();
     for (auto i = 0; i < expiredSize; i++)
@@ -95,7 +95,7 @@ void TimerQueue::reset(std::vector<TimerEntry> expired, TimeStamp now)
 
     if (!_timers.empty())
     {
-        TimeStamp newExpiration = _timers.cbegin()->second->expiredTime();
+        Timestamp newExpiration = _timers.cbegin()->second->expiredTime();
         resetTimerfd(newExpiration);
     }
 }
@@ -103,7 +103,7 @@ void TimerQueue::reset(std::vector<TimerEntry> expired, TimeStamp now)
 bool TimerQueue::insert(Timer* pTimer)
 {
     bool first = false;
-    TimeStamp expiration = pTimer->expiredTime();
+    Timestamp expiration = pTimer->expiredTime();
     auto it = _timers.cbegin();
 
     if (it == _timers.cend() || expiration < it->first)
@@ -118,7 +118,7 @@ bool TimerQueue::insert(Timer* pTimer)
     return first;
 }
 
-int TimerQueue::resetTimerfd(TimeStamp expiration) const
+int TimerQueue::resetTimerfd(Timestamp expiration) const
 {
     struct itimerspec new_value;
     struct itimerspec old_value;
@@ -126,13 +126,13 @@ int TimerQueue::resetTimerfd(TimeStamp expiration) const
     ::memset(&old_value, 0, sizeof old_value);
 
     // get duration from now, and set itimerspec
-    int64_t microSecs = expiration.toMicroSec() - TimeStamp::now().toMicroSec();
+    int64_t microSecs = expiration.toMicroSec() - Timestamp::now().toMicroSec();
 
     assert(microSecs > 0);
 
     struct timespec ts;
-    ts.tv_sec = static_cast<time_t>(microSecs / TimeStamp::microSecsPerSecond);
-    ts.tv_nsec = static_cast<long>((microSecs % TimeStamp::microSecsPerSecond) * 1000);
+    ts.tv_sec = static_cast<time_t>(microSecs / Timestamp::microSecsPerSecond);
+    ts.tv_nsec = static_cast<long>((microSecs % Timestamp::microSecsPerSecond) * 1000);
     new_value.it_value = ts;
 
     // reset timerfd

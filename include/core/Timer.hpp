@@ -10,7 +10,7 @@
 #ifndef HYDROGENWEB_TIMER_HPP
 #define HYDROGENWEB_TIMER_HPP
 
-#include "core/TimeStamp.hpp"
+#include "core/Timestamp.hpp"
 
 #include <functional>
 
@@ -19,16 +19,16 @@ class Timer
     typedef std::function<void()> TimerCallback;
 
 public:
-    Timer(const TimerCallback& cb, TimeStamp endTime, double interval) :
+    Timer(const TimerCallback& cb, Timestamp endTime, double interval) :
         _cb(cb), _endTime(endTime), _interval(interval), _repeat(interval > 0.0)
     {
     }
 
     void run() const { _cb(); };
 
-    TimeStamp expiredTime() const { return _endTime; }
+    Timestamp expiredTime() const { return _endTime; }
     bool repeat() const { return _repeat; }
-    void restart(TimeStamp now);
+    void restart(Timestamp now);
 
     /*
      * make it non-copyable
@@ -38,7 +38,7 @@ public:
 
 private:
     const TimerCallback _cb;
-    TimeStamp _endTime; // expiration time
+    Timestamp _endTime; // expiration time
     const double _interval;
     const bool _repeat; // true if _interval > 0.0
 };

@@ -1,6 +1,6 @@
 /*
  * File: EventLoop.hpp
- * ---------------------------------
+ * -------------------
  * @author: Fu Wei
  *
  */
@@ -8,7 +8,7 @@
 #ifndef HYDROGENWEB_EVENTLOOP_HPP
 #define HYDROGENWEB_EVENTLOOP_HPP
 
-#include "core/TimeStamp.hpp"
+#include "core/Timestamp.hpp"
 
 #include <vector>
 #include <memory> // unique_ptr
@@ -22,7 +22,7 @@
 class Channel;
 class Poller;
 class TimerQueue;
-class TimeStamp;
+class Timestamp;
 
 class EventLoop
 {
@@ -40,7 +40,7 @@ public:
     /*
      * set timer
      */
-    void runAt(TimeStamp time, const TimerCallback& cb);
+    void runAt(Timestamp time, const TimerCallback& cb);
     void runAfter(double delay, const TimerCallback& cb);
     void runEvery(double interval, const TimerCallback& cb);
 
@@ -69,7 +69,7 @@ public:
     /*
      * get the last poll return time
      */
-    TimeStamp pollReturnTime() const;
+    Timestamp pollReturnTime() const;
 
     /*
      * precondition check functions
@@ -104,7 +104,7 @@ private:
     bool _quit;
     bool _processingFunctors;
     const pid_t _threadId;
-    TimeStamp _pollReturnTime;
+    Timestamp _pollReturnTime;
     std::unique_ptr<Poller> _poller;
     std::unique_ptr<TimerQueue> _timerQueue;
     ChannelList _activeChannels;
