@@ -14,6 +14,8 @@
 
 #include "spdlog/spdlog.h"
 
+using namespace std::placeholders;
+
 TcpConnection::TcpConnection(EventLoop* loop,
                              std::string& connName,
                              Socket socket,
@@ -156,28 +158,52 @@ void TcpConnection::send(const std::string& msg)
         else
         {
             // TODO: avoid copying the msg
-            _loop->runInLoopThread(std::bind(&TcpConnection::sendInLoopThread,
-                                             this,
-                                             msg));
+            _loop->runInLoopThread([this, msg] { sendInLoopThread(msg); });
+        }
+    }
+}
+
+void TcpConnection::send(HyBuffer* buffer)
+{
+    if (_state == CONNECTED)
+    {
+        if (_loop->isInLoopThread())
+        {
+            sendInLoopThread(buffer->payload(), buffer->readableBytes());
+            buffer->clearAll();
+        }
+        else
+        {
+            _loop->runInLoopThread(
+                [this, buffer] {
+                    sendInLoopThread(buffer->payload(), buffer->readableBytes());
+                });
         }
     }
 }
 
 void TcpConnection::sendInLoopThread(const std::string& msg)
 {
+    sendInLoopThread(msg.data(), msg.length());
+}
+
+void TcpConnection::sendInLoopThread(const char* data, size_t length)
+{
     _loop->assertInLoopThread();
 
     ssize_t n = 0;
+    size_t left = length;
     if (!_channel->isWriting() && _outputBuffer.readableBytes() == 0)
     { /** try writing data directly */
-        n = ::write(_socket.fd(), msg.data(), msg.length());
+        n = ::write(_socket.fd(), data, length);
         if (n >= 0)
         {
-            if (static_cast<size_t>(n) < msg.length())
+            left -= n;
+            if (static_cast<size_t>(n) < length)
             {
                 spdlog::info("TcpConnection::sendInLoopThread - wrote {}/{} bytes",
                              n,
-                             msg.length());
+                             length);
             }
         }
         else if (n < 0)
@@ -187,9 +213,9 @@ void TcpConnection::sendInLoopThread(const std::string& msg)
         }
     }
 
-    if (static_cast<size_t>(n) < msg.length())
+    if (static_cast<size_t>(n) < length)
     { /** append remaining data to buffer and indicate write event for poller */
-        _outputBuffer.append(msg.data() + n, msg.length() - n);
+        _outputBuffer.append(data + n, left);
         if (!_channel->isWriting())
         {
             _channel->enableWriting();
