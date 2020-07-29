@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <cassert>
+#include <algorithm> // search()
 
 class HyBuffer
 {
@@ -30,7 +31,9 @@ public:
     size_t readableBytes() const { return _writerIndex - _readerIndex; }
     size_t writableBytes() const { return _buffer.size() - _readerIndex; }
 
+    /** clear buffer */
     void clear(size_t length) { _readerIndex += length; }
+    void clearUntil(const char* until) { clear(until - payload()); }
     void clearAll()
     {
         _readerIndex = PREPENDABLEBYTES;
@@ -54,15 +57,9 @@ public:
         _writerIndex += length;
     }
 
-    void append(const void* res, size_t length)
-    {
-        append(static_cast<const char*>(res), length);
-    }
+    void append(const void* res, size_t length) { append(static_cast<const char*>(res), length); }
 
-    void append(const std::string& res)
-    {
-        append(res.data(), res.length());
-    }
+    void append(const std::string& res) { append(res.data(), res.length()); }
 
     void prepend(const void* res, size_t length)
     {
@@ -75,12 +72,28 @@ public:
 
     ssize_t readFd(int fd);
 
+    /*
+     * search in buffer
+     */
+
+    /** search CRLF in buffer, return a pointer to the beginning or nullptr if CRLF is not found */
+    const char* getCRLF() const
+    {
+        const char* crlf = std::search(payload(),
+                                       _buffer.data() + _writerIndex,
+                                       CRLF,
+                                       CRLF + 2);
+        return crlf == (_buffer.data() + _writerIndex) ? nullptr : crlf;
+    }
+
 private:
     void reserve(size_t length);
 
     std::vector<char> _buffer;
     size_t _readerIndex;
     size_t _writerIndex;
+
+    static constexpr char CRLF[] = "\r\n";
 };
 
 #endif //HYDROGENWEB_HYBUFFER_HPP
