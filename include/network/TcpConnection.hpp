@@ -17,6 +17,7 @@
 #include <string>
 #include <functional>
 #include <memory>
+#include <any>
 
 class EventLoop;
 class Channel;
@@ -39,11 +40,15 @@ public:
     void setConnectionCallback(const ConnectionCallback& cb) { _connCallback = cb; }
     void setMessageCallback(const MessageCallback& cb) { _msgCallback = cb; }
     void setCloseCallback(const CloseCallback& cb) { _closeCallback = cb; }
+    void setContext(const std::any context) { _context = context; }
+    std::any* getContext() { return &_context; }
+    const std::any& getContext() const { return _context; }
 
     void establishConnection();
     void destroyConnection();
 
     void send(const std::string& msg);
+    void send(HyBuffer* buffer);
     void shutdown();
 
     /*
@@ -67,6 +72,7 @@ private:
     void closeHandler();
     void errorHandler();
     void sendInLoopThread(const std::string& msg);
+    void sendInLoopThread(const char* data, size_t len);
     void shutdownInLoopThread();
 
     EventLoop* _loop;
@@ -81,6 +87,7 @@ private:
     CloseCallback _closeCallback;
     HyBuffer _inputBuffer;
     HyBuffer _outputBuffer;
+    std::any _context;
 };
 
 #endif //HYDROGENWEB_TCPCONNECTION_HPP
