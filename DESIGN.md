@@ -25,7 +25,7 @@
 
 其中IO多路复用，复用的是线程，可以在同一个线程里，处理多个连接的输入输出事件。很多网络库内部实现都采用了这种IO模型。
 
-![multiplexing](https://en.wikipedia.org/wiki/File:Multiplexing_diagram.svg)
+![multiplexing][img0]
 
 _UNP_ 提到几种IO复用的场景：
 1. 客户需要处理多个fd，必须使用IO复用。
@@ -60,6 +60,7 @@ _UNP_ 中总结以上5种服务器设计范式：
 10. Nginx的方案，如果连接之间没有交互，就不担心繁琐的IPC，那么也是很好的选择。而且进程之间独立，可以热升级。
 11. 8、9的混合，既有多个reactor处理IO，又有thread pool进行计算任务。适合既有突发IO，又有突发计算。CPU利用率可以比9更高，但延迟也更大。具体应该使用一个eventloop还是多个，参考ZeroMQ的手册建议：每千兆比特每秒的吞吐量一个eventloop。如果IO带宽较小，计算量大，延迟不敏感，可以把计算全部放到thread pool中，也可以只用一个eventloop。如果连接有优先级，那么高优先级需要单独一个eventloop。
 
+[img0]:(https://en.wikipedia.org/wiki/File:Multiplexing_diagram.svg)
 [img1]:https://raw.githubusercontent.com/fuweiagn/imgs/master/imgs/concurrent_network_programming_models.jpg?token=APOZM5NGCOO4UG6QPHXCH2K7EKOC4
 [img2]:https://raw.githubusercontent.com/fuweiagn/imgs/master/imgs/UNP_models.jpg?token=APOZM5N4HFIS43ZFRTLQTGC7EKOXI
 [1]:http://www.dre.vanderbilt.edu/~schmidt/PDF/reactor-siemens.pdf
