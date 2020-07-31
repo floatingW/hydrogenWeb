@@ -21,13 +21,13 @@ thread_local EventLoop* loopInThisThread = nullptr;
 
 EventLoop::EventLoop() :
     _looping(false),
-    _threadId(gettid()),
     _quit(false),
+    _processingFunctors(false),
+    _threadId(gettid()),
     _poller(new Poller(this)),
     _timerQueue(new TimerQueue(this)),
     _wakenfd(Eventfd()),
-    _wakenChannel(new Channel(this, _wakenfd)),
-    _processingFunctors(false)
+    _wakenChannel(new Channel(this, _wakenfd))
 {
     spdlog::info("A new eventLoop {} created in thread {}", (void*)this, _threadId);
     if (loopInThisThread)

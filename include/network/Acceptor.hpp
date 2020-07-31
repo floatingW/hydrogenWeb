@@ -38,9 +38,9 @@ public:
 private:
     void incomingHandler();
 
+    EventLoop* _loop;
     NewConnectionCallback _newConnectionCallback;
     bool _listening;
-    EventLoop* _loop;
     Socket _listenSocket;
     Channel _acceptorChannel;
 };

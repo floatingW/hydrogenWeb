@@ -13,9 +13,9 @@
 
 Acceptor::Acceptor(EventLoop* loop, const InetAddr& listenAddr) :
     _loop(loop),
+    _listening(false),
     _listenSocket(socketDetail::nonblockingSocket()),
-    _acceptorChannel(loop, _listenSocket.fd()),
-    _listening(false)
+    _acceptorChannel(loop, _listenSocket.fd())
 {
     // Eliminates "Address already in use" error from bind
     _listenSocket.setReuse(true);
