@@ -30,3 +30,10 @@ target_compile_features(io PUBLIC cxx_std_17)
 target_compile_features(network PUBLIC cxx_std_17)
 target_compile_features(unixUtility PUBLIC cxx_std_17)
 target_compile_features(sem PUBLIC cxx_std_17)
+
+# Sets compile flags
+target_compile_options(core PUBLIC -Wall -Wextra -pedantic -pedantic-errors)
+target_compile_options(io PUBLIC -Wall -Wextra -pedantic -pedantic-errors)
+target_compile_options(network PUBLIC -Wall -Wextra -pedantic -pedantic-errors)
+target_compile_options(unixUtility PUBLIC -Wall -Wextra -pedantic -pedantic-errors)
+target_compile_options(sem PUBLIC -Wall -Wextra -pedantic -pedantic-errors)
