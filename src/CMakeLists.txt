@@ -3,7 +3,7 @@ file(GLOB HEADER_LIST CONFIGURE_DEPENDS "${hydrogenWeb_SOURCE_DIR}/include/*.hpp
 
 # Will be static or dynamic based on user setting
 add_library(core Timestamp.cpp Timer.cpp TimerQueue.cpp EventLoopThread.cpp
-        HyBuffer.cpp ${HEADER_LIST})
+        EventLoopThreadPool.cpp HyBuffer.cpp ${HEADER_LIST})
 add_library(io sio.cpp robustio.cpp ${HEADER_LIST})
 add_library(network socketDetail.cpp EventLoop.cpp Channel.cpp Poller.cpp
         InetAddr.cpp Socket.cpp Acceptor.cpp TcpServer.cpp TcpConnection.cpp
@@ -32,8 +32,13 @@ target_compile_features(unixUtility PUBLIC cxx_std_17)
 target_compile_features(sem PUBLIC cxx_std_17)
 
 # Sets compile flags
-target_compile_options(core PUBLIC -Wall -Wextra -pedantic -pedantic-errors)
-target_compile_options(io PUBLIC -Wall -Wextra -pedantic -pedantic-errors)
-target_compile_options(network PUBLIC -Wall -Wextra -pedantic -pedantic-errors)
-target_compile_options(unixUtility PUBLIC -Wall -Wextra -pedantic -pedantic-errors)
-target_compile_options(sem PUBLIC -Wall -Wextra -pedantic -pedantic-errors)
+target_compile_options(core PUBLIC -Wall -Wextra -pedantic -pedantic-errors
+        "$<$<CONFIG:RELEASE>:-O2>")
+target_compile_options(io PUBLIC -Wall -Wextra -pedantic -pedantic-errors
+        "$<$<CONFIG:RELEASE>:-O2>")
+target_compile_options(network PUBLIC -Wall -Wextra -pedantic -pedantic-errors
+        "$<$<CONFIG:RELEASE>:-O2>")
+target_compile_options(unixUtility PUBLIC -Wall -Wextra -pedantic -pedantic-errors
+        "$<$<CONFIG:RELEASE>:-O2>")
+target_compile_options(sem PUBLIC -Wall -Wextra -pedantic -pedantic-errors
+        "$<$<CONFIG:RELEASE>:-O2>")
