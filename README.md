@@ -1,10 +1,12 @@
 # hydrogenWeb
 ## 简介
 hydrogen，即氢气。hydrogenWeb是一个linux下的轻量、高性能Web Server。使用C++17/CMake/GTest，无其他依赖。
-## roadmap
-1. 迭代服务器（以简单的echo服务程序为例）
-2. 并发echo服务器（基于进程、线程、IO多路复用的实现）
-3. 并发Web服务器([设计书](./DESIGN.md))
+## 完善
+1. 多线程支持
+2. epoll的支持
+3. 完善测试
+4. 完善连接管理
+## [设计思路](./DESIGN.md)
 ## [项目目的](./PURPOSE.md)
 ## 参考
 1. [CMU ICS course](http://www.cs.cmu.edu/afs/cs/academic/class/15213-s20/www/index.html)
