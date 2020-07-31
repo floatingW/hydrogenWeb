@@ -91,6 +91,8 @@ void TcpConnection::connectionHandler(Timestamp receiveTime)
 
 void TcpConnection::writeHandler()
 {
+    _loop->assertInLoopThread();
+
     if (_channel->isWriting())
     {
         ssize_t n = ::write(_socket.fd(),
