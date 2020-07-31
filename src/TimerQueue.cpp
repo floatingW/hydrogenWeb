@@ -73,7 +73,7 @@ std::vector<TimerQueue::TimerEntry> TimerQueue::getExpiration(Timestamp now)
         expiration.emplace_back(std::move(_timers.extract(_timers.begin()).value()));
     }
 
-    return std::move(expiration);
+    return expiration;
 }
 
 /*
@@ -83,7 +83,7 @@ std::vector<TimerQueue::TimerEntry> TimerQueue::getExpiration(Timestamp now)
 void TimerQueue::reset(std::vector<TimerEntry> expired, Timestamp now)
 {
     auto expiredSize = expired.size();
-    for (auto i = 0; i < expiredSize; i++)
+    for (auto i = 0; static_cast<unsigned long>(i) < expiredSize; i++)
     {
         auto& entry = expired[i];
         if (entry.second->repeat())

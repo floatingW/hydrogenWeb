@@ -10,7 +10,7 @@
 #include <cassert>
 
 EventLoopThread::EventLoopThread() :
-    _started(false), _loop(nullptr)
+    _loop(nullptr), _started(false)
 {
 }
 
