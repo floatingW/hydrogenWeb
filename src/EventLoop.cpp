@@ -79,7 +79,10 @@ void EventLoop::loop()
 void EventLoop::quit()
 {
     _quit = true;
-    // TODO: wakeup loop thread
+    if (!isInLoopThread())
+    {
+        waken();
+    }
 }
 
 void EventLoop::abortNotInLoopThread()
