@@ -36,6 +36,7 @@ public:
     bool connected() const { return _state == CONNECTED; }
     const InetAddr& serverAddr() { return _serverAddr; }
     const InetAddr& clientAddr() { return _clientAddr; }
+    EventLoop* getLoop() const { return _loop; }
 
     void setConnectionCallback(const ConnectionCallback& cb) { _connCallback = cb; }
     void setMessageCallback(const MessageCallback& cb) { _msgCallback = cb; }
