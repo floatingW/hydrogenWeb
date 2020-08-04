@@ -21,8 +21,8 @@ class HttpServer
 public:
     typedef std::function<void(const HttpRequest&, HttpResponse*)> HttpCallback;
 
-    HttpServer(EventLoop* loop, const InetAddr& addr) :
-        _tcpServer(loop, addr)
+    HttpServer(EventLoop* loop, const InetAddr& addr, size_t numThreads) :
+        _tcpServer(loop, addr, numThreads)
     {
         _tcpServer.setConnectionCallback(std::bind(&HttpServer::onConnection, this, _1));
         _tcpServer.setMessageCallback(std::bind(&HttpServer::onMessage, this, _1, _2, _3));

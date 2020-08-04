@@ -23,12 +23,12 @@ extern char favicon[555];
 
 void onRequest(const HttpRequest& req, HttpResponse* resp)
 {
-    std::cout << "Headers " << req.methodString() << " " << req.path() << std::endl;
-    const std::map<string, string>& headers = req.headers();
-    for (const auto& header : headers)
-    {
-        std::cout << header.first << ": " << header.second << std::endl;
-    }
+    //    std::cout << "Headers " << req.methodString() << " " << req.path() << std::endl;
+    //    const std::map<string, string>& headers = req.headers();
+    //    for (const auto& header : headers)
+    //    {
+    //        std::cout << header.first << ": " << header.second << std::endl;
+    //    }
 
     if (req.path() == "/")
     {
@@ -42,13 +42,6 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
                       now + " seconds from 1970/00/00 00:00:00"
                             "</body></html>");
     }
-    else if (req.path() == "/favicon.ico")
-    {
-        resp->setStatusCode(HttpResponse::OK200);
-        resp->setStatusMsg("OK");
-        resp->setContentType("image/png");
-        resp->setBody(string(favicon, sizeof favicon));
-    }
     else if (req.path() == "/hello")
     {
         resp->setStatusCode(HttpResponse::OK200);
@@ -56,6 +49,13 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
         resp->setContentType("text/plain");
         resp->addHeader("Server", "HydrogenWeb");
         resp->setBody("Hello! Here is HydrogenWeb Server!\n");
+    }
+    else if (req.path() == "/favicon.ico")
+    {
+        resp->setStatusCode(HttpResponse::OK200);
+        resp->setStatusMsg("OK");
+        resp->setContentType("image/png");
+        resp->setBody(string(favicon, sizeof favicon));
     }
     else
     {
@@ -67,14 +67,15 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
 
 int main(int argc, char* argv[])
 {
-    int port = 23457;
+    int port = 23456;
+    int numThreads = 0;
     if (argc > 1)
     {
-        port = atoi(argv[1]);
+        numThreads = atoi(argv[1]);
     }
     spdlog::set_level(spdlog::level::critical);
     EventLoop loop;
-    HttpServer server(&loop, InetAddr(port));
+    HttpServer server(&loop, InetAddr(port), numThreads);
     server.setHttpCallback(onRequest);
     server.run();
     loop.loop();

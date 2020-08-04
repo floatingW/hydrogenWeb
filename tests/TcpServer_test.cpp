@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
     InetAddr listenAddr(23456);
     EventLoop loop;
     g_loop = &loop;
-    TcpServer server(&loop, listenAddr);
+    TcpServer server(&loop, listenAddr, 4);
     server.setConnectionCallback(onConnection);
     server.setMessageCallback(onMessage);
     server.run();

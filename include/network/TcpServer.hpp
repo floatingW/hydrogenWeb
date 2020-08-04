@@ -12,6 +12,7 @@
 #include "network/TcpConnection.hpp"
 #include "network/Acceptor.hpp"
 #include "core/GlobalCallbacks.hpp"
+#include "core/EventLoopThreadPool.hpp"
 
 #include <unordered_map>
 #include <string>
@@ -26,7 +27,8 @@ class Socket;
 class TcpServer
 {
 public:
-    TcpServer(EventLoop* loop, const InetAddr& listenAddr);
+    TcpServer(EventLoop* loop, const InetAddr& listenAddr, size_t numThreads);
+    // TODO: dtor, close connections
 
     void run();
 
@@ -40,8 +42,9 @@ public:
     TcpServer& operator=(const TcpServer&) = delete;
 
 private:
-    void newConnectionHandler(Socket socket, const InetAddr& clientAddr);
+    void newConnectionHandler(Socket conn, const InetAddr& clientAddr);
     void removeConnection(const pTcpConnection& conn);
+    void removeConnectionInLoopThread(const pTcpConnection& conn);
 
     typedef std::unordered_map<std::string, pTcpConnection> ConnectionMap;
 
@@ -53,6 +56,7 @@ private:
     bool _started;
     int _newConnId;
     ConnectionMap _connections;
+    std::unique_ptr<EventLoopThreadPool> _threadPool;
 };
 
 #endif //HYDROGENWEB_TCPSERVER_HPP
