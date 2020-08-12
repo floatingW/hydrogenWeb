@@ -11,6 +11,7 @@
 #include "network/EventLoop.hpp"
 #include "network/InetAddr.hpp"
 #include "system/unixUtility.hpp"
+#include "config.h"
 
 #include <iostream>
 #include <unordered_map>
@@ -25,10 +26,6 @@
 #include <sqlite3.h>
 
 using namespace std;
-
-const string htmlPath = "/home/fwei/web/html";
-const string objectPath = "/home/fwei/web/file";
-const string databasePath = "/home/fwei/database/test.db";
 
 unordered_map<string, string> mimeTypes;
 
@@ -412,7 +409,7 @@ int main(int argc, char* argv[])
         cerr << "Usage: " << argv[0] << "<port> [numThreads: default=0]\n";
         exit(0);
     }
-    spdlog::set_level(spdlog::level::info);
+    spdlog::set_level(spdlog::level::err);
 
     detail::fillMimeType(mimeTypes);
     EventLoop loop;
