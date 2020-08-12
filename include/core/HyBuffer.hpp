@@ -86,6 +86,23 @@ public:
         return crlf == (_buffer.data() + _writerIndex) ? nullptr : crlf;
     }
 
+    const char* getAND() const
+    {
+        const char* andOp = std::find(payload(), _buffer.data() + _writerIndex, '&');
+        return andOp == (_buffer.data() + _writerIndex) ? nullptr : andOp;
+    }
+
+    const char* getAssignment() const
+    {
+        const char* assignment = std::find(payload(), _buffer.data() + _writerIndex, '=');
+        return assignment == (_buffer.data() + _writerIndex) ? nullptr : assignment;
+    }
+
+    const char* getEOL() const
+    {
+        return _buffer.data() + _writerIndex;
+    }
+
 private:
     void reserve(size_t length);
 
