@@ -10,70 +10,411 @@
 #include "network/http/HttpResponse.hpp"
 #include "network/EventLoop.hpp"
 #include "network/InetAddr.hpp"
+#include "system/unixUtility.hpp"
 
 #include <iostream>
+#include <unordered_map>
 //#include <fstream>
 //#include <sstream>
 
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+
 #include <spdlog/spdlog.h>
+#include <sqlite3.h>
 
 using namespace std;
 
-extern char favicon[555];
+const string htmlPath = "/home/fwei/web/html";
+const string objectPath = "/home/fwei/web/file";
+const string databasePath = "/home/fwei/database/test.db";
 
-void onRequest(const HttpRequest& req, HttpResponse* resp)
+unordered_map<string, string> mimeTypes;
+
+namespace detail
 {
-    //    std::cout << "Headers " << req.methodString() << " " << req.path() << std::endl;
-    //    const std::map<string, string>& headers = req.headers();
-    //    for (const auto& header : headers)
-    //    {
-    //        std::cout << header.first << ": " << header.second << std::endl;
-    //    }
+    int openDb(const string& dbPath, sqlite3** ppdb)
+    {
+        int ret = sqlite3_open(dbPath.c_str(), ppdb);
+        if (ret)
+        {
+            spdlog::error("Can't open database: {}", sqlite3_errmsg(*ppdb));
+        }
+        else
+        {
+            spdlog::info("Opened Database");
+        }
 
-    if (req.path() == "/")
+        return ret;
+    }
+
+    int execSql(sqlite3* pdb,
+                const string& sql,
+                int (*callback)(void*, int, char**, char**),
+                void* data)
+    {
+        char* errmsg;
+        int ret = sqlite3_exec(pdb, sql.c_str(), callback, data, &errmsg);
+        if (ret != SQLITE_OK)
+        {
+            spdlog::error("Can't do SQL: {}, errmsg: {}", sql, errmsg);
+            sqlite3_free(errmsg);
+        }
+        else
+        {
+            spdlog::info("Operation OK");
+        }
+
+        return ret;
+    }
+
+    int doSql(sqlite3* pdb, const string& sql)
+    {
+        sqlite3_stmt* stmt;
+        const char* pointer;
+        int ret = sqlite3_prepare_v2(pdb, sql.c_str(), sql.length(), &stmt, &pointer);
+        if (ret == SQLITE_OK)
+        {
+            ret = sqlite3_step(stmt);
+            sqlite3_finalize(stmt);
+        }
+        return ret;
+    }
+
+    void fillMimeType(unordered_map<string, string>& mimeTypes)
+    {
+        mimeTypes[".html"] = "text/html";
+        mimeTypes[".mp4"] = "video/mpeg";
+        mimeTypes[".png"] = "image/png";
+        mimeTypes[".jpg"] = "image/jpeg";
+        mimeTypes[".jpeg"] = "image/jpeg";
+        mimeTypes[".gif"] = "image/gif";
+        mimeTypes[".mp3"] = "audio/mpeg";
+        mimeTypes["default"] = "text/html";
+    }
+
+    void responseOK(HttpResponse* resp, const string& contentType)
     {
         resp->setStatusCode(HttpResponse::OK200);
         resp->setStatusMsg("OK");
-        resp->setContentType("text/html");
+        resp->setContentType(contentType);
         resp->addHeader("Server", "HydrogenWeb");
-        string now = Timestamp::now().toString();
-        resp->setBody("<html><head><title>This is title</title></head>"
-                      "<body><h1>Long time no see</h1>Now is " +
-                      now + " seconds from 1970/00/00 00:00:00"
-                            "</body></html>");
     }
-    else if (req.path() == "/hello")
-    {
-        resp->setStatusCode(HttpResponse::OK200);
-        resp->setStatusMsg("OK");
-        resp->setContentType("text/plain");
-        resp->addHeader("Server", "HydrogenWeb");
-        resp->setBody("Hello! Here is HydrogenWeb Server!\n");
-    }
-    else if (req.path() == "/favicon.ico")
-    {
-        resp->setStatusCode(HttpResponse::OK200);
-        resp->setStatusMsg("OK");
-        resp->setContentType("image/png");
-        resp->setBody(string(favicon, sizeof favicon));
-    }
-    else
+
+    void response404(HttpResponse* resp)
     {
         resp->setStatusCode(HttpResponse::NOTFOUND404);
         resp->setStatusMsg("Not Found");
+        resp->setContentType("");
+        resp->addHeader("Server", "HydrogenWeb");
         resp->setCloseConnection(true);
+        resp->setBody("404 NOTFOUND");
+    }
+
+    void response500(HttpResponse* resp)
+    {
+        resp->setStatusCode(HttpResponse::INTERNAL500);
+        resp->setStatusMsg("Internal Server Error");
+        resp->setContentType("");
+        resp->addHeader("Server", "HydrogenWeb");
+        resp->setCloseConnection(true);
+        resp->setBody("500 INTERNAL ERROR");
+    }
+}
+
+int fillData(void* data, int argc, char** argv, char** azColName)
+{
+    char buf[256];
+    auto resp = static_cast<HttpResponse*>(data);
+    resp->appendToBody("<tr>");
+
+    for (int i = 0; i < argc; ++i)
+    {
+        snprintf(buf, sizeof buf, "<td>%s</td>", argv[i]);
+        resp->appendToBody(buf);
+    }
+    resp->appendToBody("</tr>");
+
+    return 0;
+}
+
+int checkPassword(void* data, int argc, char** argv, char** azColName)
+{
+    auto pPw = static_cast<string*>(data);
+    if (*pPw == string(argv[0]))
+    {
+        spdlog::info("password correct");
+        return 0;
+    }
+    else
+    {
+        spdlog::info("password incorrect");
+        return -1;
+    }
+}
+
+//int signup(void* data, int argc, char** argv, char** azColName)
+//{
+//    auto pair = static_cast<string**>(data);
+//    if (argc == 0)
+//    {
+//    }
+//    else
+//    {
+//    }
+//}
+
+void serveFile(const string& path, HttpResponse* resp, const string& mimeType)
+{
+    int fd = ::open(path.c_str(), O_RDONLY);
+    struct stat st;
+    auto fs = ::fstat(fd, &st);
+    if (fd < 0)
+    {
+        spdlog::info("serveFile:open {} failed", path);
+        detail::response500(resp);
+        return;
+    }
+    auto map = ::mmap(
+        nullptr, static_cast<size_t>(st.st_size), PROT_READ, MAP_PRIVATE, fd, 0);
+    resp->setBody(map, st.st_size);
+    munmap(map, st.st_size);
+    detail::responseOK(resp, mimeType);
+}
+
+void serveStatic(const string& path, HttpResponse* resp)
+{
+    string suffix = path.substr(path.find('.'), path.length() - 1);
+    string mimeType;
+    if (mimeTypes.find(suffix) != mimeTypes.end())
+    {
+        mimeType = mimeTypes[suffix];
+    }
+    else
+    {
+        mimeType = mimeTypes["default"];
+    }
+    string filePath;
+    if (mimeType == "text/html")
+    {
+        /** html files */
+        filePath = htmlPath + path;
+    }
+    else
+    {
+        /** other files */
+        filePath = objectPath + path;
+    }
+
+    serveFile(filePath, resp, mimeType);
+    resp->setCloseConnection(true);
+}
+
+void onRequest(const HttpRequest& req, HttpResponse* resp)
+{
+    /** print headers and body */
+    std::cout << "Headers " << req.methodString() << " " << req.path() << std::endl;
+    const auto& headers = req.headers();
+    for (const auto& header : headers)
+    {
+        std::cout << header.first << ": " << header.second << std::endl;
+    }
+    const auto& bodys = req.bodys();
+    for (const auto& body : bodys)
+    {
+        std::cout << body.first << ": " << body.second << std::endl;
+    }
+
+    const string& path = req.path();
+    if (path == "/" || path.find('.') != string::npos)
+    { /** static */
+        if (path == "/" || path.empty())
+        {
+            serveStatic("/home.html", resp);
+        }
+        else
+        {
+            serveStatic(path, resp);
+        }
+    }
+    else
+    { /** dynamic */
+        if (path == "/time")
+        {
+            detail::responseOK(resp, "text/html");
+
+            Timestamp now = Timestamp::now();
+            resp->setBody("<html><head><title>Welcome!</title></head>");
+            resp->appendToBody("<body><h1>Long time no see!</h1>");
+            resp->appendToBody("<p>Now is " + now.toString() +
+                               " seconds from 1970/00/00 00:00:00"
+                               "</p>");
+            resp->appendToBody("<p>" +
+                               to_string(now.toSec() / (60 * 60 * 24)) +
+                               " days</p>");
+            resp->appendToBody("<p>about " +
+                               to_string(static_cast<long>(now.toSec() / (60 * 60 * 24) / 30.5)) +
+                               " months</p>");
+            resp->appendToBody("<p>about " +
+                               to_string(static_cast<long>(now.toSec() / (60 * 60 * 24) / 30.5 / 12)) +
+                               " years</p>");
+            resp->appendToBody("</html>");
+        }
+        else if (path == "/booklist")
+        {
+            detail::responseOK(resp, "text/html");
+
+            resp->setBody("<html><head><title>Book list!!</title></head>");
+            resp->appendToBody("<table border=\"1\">");
+
+            sqlite3* pdb;
+            if (detail::openDb(databasePath, &pdb))
+            {
+                /** open database failed */
+                detail::response500(resp);
+                return;
+            }
+
+            // fill booklist
+            string sql = "SELECT * from booklist";
+            if (detail::execSql(pdb, sql, fillData, static_cast<void*>(resp)) != SQLITE_OK)
+            {
+                /** execSql error */
+                detail::response500(resp);
+                return;
+            }
+            resp->appendToBody("</table>");
+            resp->appendToBody("</html>");
+            sqlite3_close(pdb);
+        }
+        else if (path == "/signup")
+        {
+            sqlite3* pdb;
+            if (detail::openDb(databasePath, &pdb) != SQLITE_OK)
+            {
+                /** open database failed */
+                detail::response500(resp);
+                return;
+            }
+
+            string sql = "SELECT * from users WHERE username=\'" +
+                         req.getBody("username") + "\'";
+            int ret = detail::doSql(pdb, sql);
+            if (ret == SQLITE_DONE)
+            {
+                sql = string("INSERT INTO users (username, password) ") +
+                      "VALUES (\'" +
+                      req.getBody("username") +
+                      "\', \'" +
+                      req.getBody("password") +
+                      "\')";
+                if (detail::execSql(pdb, sql, nullptr, nullptr) != SQLITE_OK)
+                {
+                    spdlog::error("insert error");
+                }
+                else
+                {
+                    spdlog::info("insert new user OK!");
+                    serveStatic("/success.gif", resp);
+                }
+            }
+            else
+            {
+                if (ret == SQLITE_ROW)
+                {
+                    spdlog::info("username existed");
+                    serveStatic(req.path() + "_username.html", resp);
+                }
+                else
+                {
+                    spdlog::error("insert error");
+                }
+            }
+
+            sqlite3_close(pdb);
+        }
+        else if (path == "/signin")
+        {
+            sqlite3* pdb;
+            if (detail::openDb(databasePath, &pdb) != SQLITE_OK)
+            {
+                /** open database failed */
+                detail::response500(resp);
+                return;
+            }
+
+            string sql = "SELECT * from users WHERE username=\'" +
+                         req.getBody("username") + "\'";
+            int ret = detail::doSql(pdb, sql);
+            if (ret == SQLITE_DONE)
+            {
+                /** no such user */
+                spdlog::info("no such user");
+            }
+            else
+            {
+                if (ret == SQLITE_ROW)
+                {
+                    /** user existed */
+                    sql = "SELECT password from users WHERE username=\'" +
+                          req.getBody("username") + "\'";
+                    string password = req.getBody("password");
+                    if (detail::execSql(pdb,
+                                        sql,
+                                        checkPassword,
+                                        static_cast<void*>(&password)) != SQLITE_OK)
+                    {
+                        spdlog::error("do checkPW error or PW incorrect");
+                        serveStatic(req.path() + "_pw.html", resp);
+                    }
+                    else
+                    {
+                        spdlog::info("do checkPW OK");
+                        serveStatic("/success.gif", resp);
+                    }
+                }
+                else
+                {
+                    spdlog::error("select password error");
+                }
+            }
+
+            sqlite3_close(pdb);
+        }
+        else
+        {
+            detail::response404(resp);
+        }
     }
 }
 
 int main(int argc, char* argv[])
 {
+    if (argc < 2)
+    {
+        cerr << "Usage: " << argv[0] << "<port> [numThreads: default=0]\n";
+        exit(0);
+    }
     int port = 23456;
     int numThreads = 0;
-    if (argc > 1)
+    if (argc == 3)
     {
-        numThreads = atoi(argv[1]);
+        port = stoi(argv[1]);
+        numThreads = stoi(argv[2]);
     }
-    spdlog::set_level(spdlog::level::critical);
+    else if (argc == 2)
+    {
+        port = stoi(argv[1]);
+    }
+    else
+    {
+        cerr << "Usage: " << argv[0] << "<port> [numThreads: default=0]\n";
+        exit(0);
+    }
+    spdlog::set_level(spdlog::level::err);
+
+    detail::fillMimeType(mimeTypes);
     EventLoop loop;
     HttpServer server(&loop, InetAddr(port), numThreads);
     server.setHttpCallback(onRequest);
@@ -81,561 +422,3 @@ int main(int argc, char* argv[])
     loop.loop();
     return 0;
 }
-
-char favicon[555] = {
-    '\x89',
-    'P',
-    'N',
-    'G',
-    '\xD',
-    '\xA',
-    '\x1A',
-    '\xA',
-    '\x0',
-    '\x0',
-    '\x0',
-    '\xD',
-    'I',
-    'H',
-    'D',
-    'R',
-    '\x0',
-    '\x0',
-    '\x0',
-    '\x10',
-    '\x0',
-    '\x0',
-    '\x0',
-    '\x10',
-    '\x8',
-    '\x6',
-    '\x0',
-    '\x0',
-    '\x0',
-    '\x1F',
-    '\xF3',
-    '\xFF',
-    'a',
-    '\x0',
-    '\x0',
-    '\x0',
-    '\x19',
-    't',
-    'E',
-    'X',
-    't',
-    'S',
-    'o',
-    'f',
-    't',
-    'w',
-    'a',
-    'r',
-    'e',
-    '\x0',
-    'A',
-    'd',
-    'o',
-    'b',
-    'e',
-    '\x20',
-    'I',
-    'm',
-    'a',
-    'g',
-    'e',
-    'R',
-    'e',
-    'a',
-    'd',
-    'y',
-    'q',
-    '\xC9',
-    'e',
-    '\x3C',
-    '\x0',
-    '\x0',
-    '\x1',
-    '\xCD',
-    'I',
-    'D',
-    'A',
-    'T',
-    'x',
-    '\xDA',
-    '\x94',
-    '\x93',
-    '9',
-    'H',
-    '\x3',
-    'A',
-    '\x14',
-    '\x86',
-    '\xFF',
-    '\x5D',
-    'b',
-    '\xA7',
-    '\x4',
-    'R',
-    '\xC4',
-    'm',
-    '\x22',
-    '\x1E',
-    '\xA0',
-    'F',
-    '\x24',
-    '\x8',
-    '\x16',
-    '\x16',
-    'v',
-    '\xA',
-    '6',
-    '\xBA',
-    'J',
-    '\x9A',
-    '\x80',
-    '\x8',
-    'A',
-    '\xB4',
-    'q',
-    '\x85',
-    'X',
-    '\x89',
-    'G',
-    '\xB0',
-    'I',
-    '\xA9',
-    'Q',
-    '\x24',
-    '\xCD',
-    '\xA6',
-    '\x8',
-    '\xA4',
-    'H',
-    'c',
-    '\x91',
-    'B',
-    '\xB',
-    '\xAF',
-    'V',
-    '\xC1',
-    'F',
-    '\xB4',
-    '\x15',
-    '\xCF',
-    '\x22',
-    'X',
-    '\x98',
-    '\xB',
-    'T',
-    'H',
-    '\x8A',
-    'd',
-    '\x93',
-    '\x8D',
-    '\xFB',
-    'F',
-    'g',
-    '\xC9',
-    '\x1A',
-    '\x14',
-    '\x7D',
-    '\xF0',
-    'f',
-    'v',
-    'f',
-    '\xDF',
-    '\x7C',
-    '\xEF',
-    '\xE7',
-    'g',
-    'F',
-    '\xA8',
-    '\xD5',
-    'j',
-    'H',
-    '\x24',
-    '\x12',
-    '\x2A',
-    '\x0',
-    '\x5',
-    '\xBF',
-    'G',
-    '\xD4',
-    '\xEF',
-    '\xF7',
-    '\x2F',
-    '6',
-    '\xEC',
-    '\x12',
-    '\x20',
-    '\x1E',
-    '\x8F',
-    '\xD7',
-    '\xAA',
-    '\xD5',
-    '\xEA',
-    '\xAF',
-    'I',
-    '5',
-    'F',
-    '\xAA',
-    'T',
-    '\x5F',
-    '\x9F',
-    '\x22',
-    'A',
-    '\x2A',
-    '\x95',
-    '\xA',
-    '\x83',
-    '\xE5',
-    'r',
-    '9',
-    'd',
-    '\xB3',
-    'Y',
-    '\x96',
-    '\x99',
-    'L',
-    '\x6',
-    '\xE9',
-    't',
-    '\x9A',
-    '\x25',
-    '\x85',
-    '\x2C',
-    '\xCB',
-    'T',
-    '\xA7',
-    '\xC4',
-    'b',
-    '1',
-    '\xB5',
-    '\x5E',
-    '\x0',
-    '\x3',
-    'h',
-    '\x9A',
-    '\xC6',
-    '\x16',
-    '\x82',
-    '\x20',
-    'X',
-    'R',
-    '\x14',
-    'E',
-    '6',
-    'S',
-    '\x94',
-    '\xCB',
-    'e',
-    'x',
-    '\xBD',
-    '\x5E',
-    '\xAA',
-    'U',
-    'T',
-    '\x23',
-    'L',
-    '\xC0',
-    '\xE0',
-    '\xE2',
-    '\xC1',
-    '\x8F',
-    '\x0',
-    '\x9E',
-    '\xBC',
-    '\x9',
-    'A',
-    '\x7C',
-    '\x3E',
-    '\x1F',
-    '\x83',
-    'D',
-    '\x22',
-    '\x11',
-    '\xD5',
-    'T',
-    '\x40',
-    '\x3F',
-    '8',
-    '\x80',
-    'w',
-    '\xE5',
-    '3',
-    '\x7',
-    '\xB8',
-    '\x5C',
-    '\x2E',
-    'H',
-    '\x92',
-    '\x4',
-    '\x87',
-    '\xC3',
-    '\x81',
-    '\x40',
-    '\x20',
-    '\x40',
-    'g',
-    '\x98',
-    '\xE9',
-    '6',
-    '\x1A',
-    '\xA6',
-    'g',
-    '\x15',
-    '\x4',
-    '\xE3',
-    '\xD7',
-    '\xC8',
-    '\xBD',
-    '\x15',
-    '\xE1',
-    'i',
-    '\xB7',
-    'C',
-    '\xAB',
-    '\xEA',
-    'x',
-    '\x2F',
-    'j',
-    'X',
-    '\x92',
-    '\xBB',
-    '\x18',
-    '\x20',
-    '\x9F',
-    '\xCF',
-    '3',
-    '\xC3',
-    '\xB8',
-    '\xE9',
-    'N',
-    '\xA7',
-    '\xD3',
-    'l',
-    'J',
-    '\x0',
-    'i',
-    '6',
-    '\x7C',
-    '\x8E',
-    '\xE1',
-    '\xFE',
-    'V',
-    '\x84',
-    '\xE7',
-    '\x3C',
-    '\x9F',
-    'r',
-    '\x2B',
-    '\x3A',
-    'B',
-    '\x7B',
-    '7',
-    'f',
-    'w',
-    '\xAE',
-    '\x8E',
-    '\xE',
-    '\xF3',
-    '\xBD',
-    'R',
-    '\xA9',
-    'd',
-    '\x2',
-    'B',
-    '\xAF',
-    '\x85',
-    '2',
-    'f',
-    'F',
-    '\xBA',
-    '\xC',
-    '\xD9',
-    '\x9F',
-    '\x1D',
-    '\x9A',
-    'l',
-    '\x22',
-    '\xE6',
-    '\xC7',
-    '\x3A',
-    '\x2C',
-    '\x80',
-    '\xEF',
-    '\xC1',
-    '\x15',
-    '\x90',
-    '\x7',
-    '\x93',
-    '\xA2',
-    '\x28',
-    '\xA0',
-    'S',
-    'j',
-    '\xB1',
-    '\xB8',
-    '\xDF',
-    '\x29',
-    '5',
-    'C',
-    '\xE',
-    '\x3F',
-    'X',
-    '\xFC',
-    '\x98',
-    '\xDA',
-    'y',
-    'j',
-    'P',
-    '\x40',
-    '\x0',
-    '\x87',
-    '\xAE',
-    '\x1B',
-    '\x17',
-    'B',
-    '\xB4',
-    '\x3A',
-    '\x3F',
-    '\xBE',
-    'y',
-    '\xC7',
-    '\xA',
-    '\x26',
-    '\xB6',
-    '\xEE',
-    '\xD9',
-    '\x9A',
-    '\x60',
-    '\x14',
-    '\x93',
-    '\xDB',
-    '\x8F',
-    '\xD',
-    '\xA',
-    '\x2E',
-    '\xE9',
-    '\x23',
-    '\x95',
-    '\x29',
-    'X',
-    '\x0',
-    '\x27',
-    '\xEB',
-    'n',
-    'V',
-    'p',
-    '\xBC',
-    '\xD6',
-    '\xCB',
-    '\xD6',
-    'G',
-    '\xAB',
-    '\x3D',
-    'l',
-    '\x7D',
-    '\xB8',
-    '\xD2',
-    '\xDD',
-    '\xA0',
-    '\x60',
-    '\x83',
-    '\xBA',
-    '\xEF',
-    '\x5F',
-    '\xA4',
-    '\xEA',
-    '\xCC',
-    '\x2',
-    'N',
-    '\xAE',
-    '\x5E',
-    'p',
-    '\x1A',
-    '\xEC',
-    '\xB3',
-    '\x40',
-    '9',
-    '\xAC',
-    '\xFE',
-    '\xF2',
-    '\x91',
-    '\x89',
-    'g',
-    '\x91',
-    '\x85',
-    '\x21',
-    '\xA8',
-    '\x87',
-    '\xB7',
-    'X',
-    '\x7E',
-    '\x7E',
-    '\x85',
-    '\xBB',
-    '\xCD',
-    'N',
-    'N',
-    'b',
-    't',
-    '\x40',
-    '\xFA',
-    '\x93',
-    '\x89',
-    '\xEC',
-    '\x1E',
-    '\xEC',
-    '\x86',
-    '\x2',
-    'H',
-    '\x26',
-    '\x93',
-    '\xD0',
-    'u',
-    '\x1D',
-    '\x7F',
-    '\x9',
-    '2',
-    '\x95',
-    '\xBF',
-    '\x1F',
-    '\xDB',
-    '\xD7',
-    'c',
-    '\x8A',
-    '\x1A',
-    '\xF7',
-    '\x5C',
-    '\xC1',
-    '\xFF',
-    '\x22',
-    'J',
-    '\xC3',
-    '\x87',
-    '\x0',
-    '\x3',
-    '\x0',
-    'K',
-    '\xBB',
-    '\xF8',
-    '\xD6',
-    '\x2A',
-    'v',
-    '\x98',
-    'I',
-    '\x0',
-    '\x0',
-    '\x0',
-    '\x0',
-    'I',
-    'E',
-    'N',
-    'D',
-    '\xAE',
-    'B',
-    '\x60',
-    '\x82',
-};
