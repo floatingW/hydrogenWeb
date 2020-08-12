@@ -97,7 +97,10 @@ int socketDetail::Accept(int listenfd, struct sockaddr& addr)
 int socketDetail::Accept(int listenfd, struct sockaddr_in& addr) // for class Socket
 {
     socklen_t addrlen = sizeof addr;
-    int connfd = accept4(listenfd, reinterpret_cast<struct sockaddr*>(&addr), &addrlen, SOCK_NONBLOCK | SOCK_CLOEXEC);
+    int connfd = accept4(listenfd,
+                         reinterpret_cast<struct sockaddr*>(&addr),
+                         &addrlen,
+                         SOCK_NONBLOCK | SOCK_CLOEXEC);
     if (connfd < 0)
     {
         unix_error("Accept error");
