@@ -260,6 +260,7 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
                                to_string(static_cast<long>(now.toSec() / (60 * 60 * 24) / 30.5 / 12)) +
                                " years</p>");
             resp->appendToBody("</html>");
+            resp->setCloseConnection(true);
         }
         else if (path == "/booklist")
         {
@@ -286,6 +287,7 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
             }
             resp->appendToBody("</table>");
             resp->appendToBody("</html>");
+            resp->setCloseConnection(true);
             sqlite3_close(pdb);
         }
         else if (path == "/signup")
@@ -316,7 +318,7 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
                 else
                 {
                     spdlog::info("insert new user OK!");
-                    serveStatic("/success.gif", resp);
+                    serveStatic("/signin.html", resp);
                 }
             }
             else
@@ -324,7 +326,7 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
                 if (ret == SQLITE_ROW)
                 {
                     spdlog::info("username existed");
-                    serveStatic(req.path() + "_username.html", resp);
+                    serveStatic(req.path() + "_error.html", resp);
                 }
                 else
                 {
@@ -351,6 +353,7 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
             {
                 /** no such user */
                 spdlog::info("no such user");
+                serveStatic(req.path() + "_error.html", resp);
             }
             else
             {
@@ -366,12 +369,12 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
                                         static_cast<void*>(&password)) != SQLITE_OK)
                     {
                         spdlog::error("do checkPW error or PW incorrect");
-                        serveStatic(req.path() + "_pw.html", resp);
+                        serveStatic(req.path() + "_error.html", resp);
                     }
                     else
                     {
                         spdlog::info("do checkPW OK");
-                        serveStatic("/success.gif", resp);
+                        serveStatic("/selection.html", resp);
                     }
                 }
                 else
