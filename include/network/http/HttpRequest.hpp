@@ -129,10 +129,32 @@ public:
         return data;
     }
 
-    const auto& headers() const
+    const auto& headers() const { return _headers; }
+
+    void addBody(const char* begin, const char* assignment, const char* end)
     {
-        return _headers;
+        /** A body string:
+            name1=value1&name2=value2 */
+
+        string name(begin, assignment);
+        string value(assignment + 1, end);
+        _headers[name] = value;
     }
+
+    string getBody(const string& name) const
+    {
+        string data;
+        auto it = _headers.find(name);
+
+        if (it != _headers.end())
+        {
+            data = it->second;
+        }
+
+        return data;
+    }
+
+    auto& bodys() const { return _bodys; }
 
     void swap(HttpRequest& other)
     {
@@ -151,6 +173,7 @@ private:
     string _query;
     Timestamp _receiveTime;
     std::map<string, string> _headers;
+    std::map<string, string> _bodys;
 };
 
 #endif //HYDROGENWEB_HTTPREQUEST_HPP
