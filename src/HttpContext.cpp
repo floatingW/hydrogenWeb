@@ -49,8 +49,15 @@ bool HttpContext::parseRequest(HyBuffer* buffer, Timestamp receiveTime)
                 else
                 {
                     // empty line, end of the header fields
-                    // FIXME: no body yet
-                    _state = EXPECTBODY;
+                    if (_request.method() == HttpRequest::GET)
+                    {
+                        hasMore = false;
+                        _state = ALLOK;
+                    }
+                    else
+                    {
+                        _state = EXPECTBODY;
+                    }
                 }
                 buffer->clearUntil(crlf + 2);
             }
@@ -61,9 +68,40 @@ bool HttpContext::parseRequest(HyBuffer* buffer, Timestamp receiveTime)
         }
         else if (_state == EXPECTBODY)
         {
-            hasMore = false;
-            _state = ALLOK;
-            // TODO: parse body
+            /** check content length */
+            int contentLength = std::stoi(_request.getHeader("Content-Length"));
+            int actualLength = std::distance(buffer->payload(), buffer->getEOL());
+            if (contentLength != actualLength)
+            {
+                correct = false;
+                hasMore = false;
+            }
+
+            while (hasMore)
+            {
+                const char* assignment = buffer->getAssignment();
+                if (assignment)
+                {
+                    const char* andOp = buffer->getAND();
+                    if (andOp)
+                    {
+                        _request.addBody(buffer->payload(), assignment, andOp);
+                        buffer->clearUntil(andOp + 1);
+                    }
+                    else
+                    {
+                        _request.addBody(buffer->payload(), assignment, buffer->getEOL());
+                        buffer->clearUntil(buffer->getEOL() + 1);
+                        hasMore = false;
+                        _state = ALLOK;
+                    }
+                }
+                else
+                {
+                    correct = false;
+                    hasMore = false;
+                }
+            }
         }
     }
     return correct;
