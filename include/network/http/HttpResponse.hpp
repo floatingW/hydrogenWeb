@@ -23,6 +23,7 @@ public:
         OK200 = 200,
         BADREQUEST400 = 400,
         NOTFOUND404 = 404,
+        INTERNAL500 = 500,
         UNKNOWN
     };
 
@@ -38,6 +39,11 @@ public:
     void setContentType(const string& contentType) { addHeader("Content-Type", contentType); }
     void addHeader(const string& key, const string& value) { _headers[key] = value; }
     void setBody(const string& body) { _body = body; }
+    void setBody(const void* addr, size_t length)
+    {
+        _body = string(static_cast<const char*>(addr), length);
+    }
+    void appendToBody(const string& msg) { _body += msg; }
 
     void appendToBuffer(HyBuffer* outputBuffer) const;
 
