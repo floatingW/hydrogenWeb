@@ -41,7 +41,7 @@ target_link_libraries(EventLoop_test PRIVATE network core)
 target_link_libraries(TimeStamp_unittest PRIVATE core GTest::GTest GTest::Main)
 target_link_libraries(Acceptor_test PRIVATE network core)
 target_link_libraries(TcpServer_test PRIVATE network core)
-target_link_libraries(HttpServer_test PRIVATE network core spdlog::spdlog)
+target_link_libraries(HttpServer_test PRIVATE network core spdlog::spdlog sqlite3)
 
 # Adds tests
 gtest_discover_tests(robustio_unittest)

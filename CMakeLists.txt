@@ -41,6 +41,9 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # find spdlog
     find_package(spdlog REQUIRED)
 
+    # find SQLite3
+    find_package(SQLite3 REQUIRED)
+
 endif ()
 
 # Need fetchcontent for some extra modules

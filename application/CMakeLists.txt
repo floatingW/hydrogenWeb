@@ -2,7 +2,7 @@
 add_executable(hydrogenWeb hydrogenWeb.cpp)
 target_compile_features(hydrogenWeb PRIVATE cxx_std_17)
 
-target_link_libraries(hydrogenWeb PRIVATE io)
+target_link_libraries(hydrogenWeb PRIVATE network core spdlog::spdlog sqlite3)
 
 # echoClient
 add_executable(echoClient echoClient.cpp)
