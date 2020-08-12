@@ -32,7 +32,7 @@ Timestamp Poller::poll(int timeoutMs, Poller::ChannelList* activeChannels)
     }
     else if (numEvents == 0)
     {
-        spdlog::info("Poller::poll() nothing happened");
+        spdlog::trace("Poller::poll() nothing happened");
     }
     else
     {
