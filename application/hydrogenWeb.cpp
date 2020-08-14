@@ -24,6 +24,7 @@
 
 #include <spdlog/spdlog.h>
 #include <sqlite3.h>
+#include <bcrypt/BCrypt.hpp>
 
 using namespace std;
 
@@ -139,7 +140,7 @@ int fillData(void* data, int argc, char** argv, char** azColName)
 int checkPassword(void* data, int argc, char** argv, char** azColName)
 {
     auto pPw = static_cast<string*>(data);
-    if (*pPw == string(argv[0]))
+    if (BCrypt::validatePassword(*pPw, argv[0]))
     {
         spdlog::info("password correct");
         return 0;
@@ -306,7 +307,7 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
                       "VALUES (\'" +
                       req.getBody("username") +
                       "\', \'" +
-                      req.getBody("password") +
+                      BCrypt::generateHash(req.getBody("password")) +
                       "\')";
                 if (detail::execSql(pdb, sql, nullptr, nullptr) != SQLITE_OK)
                 {
